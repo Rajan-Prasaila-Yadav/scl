@@ -2,6 +2,9 @@
 
 ## Unreleased — documentation follow-up
 
+- Added docs/backend-planning with database/stack comparison, Nepal region measurements, search design, offline synchronization policy, security/recovery gates, Docker guidance, cost snapshot and staged implementation roadmap.
+- Recorded the configured GitHub remote and owner-reported deployment, explicitly distinguishing them from unverified live hosting details.
+
 - Added current project status, documentation index, page/module architecture and backend preparation plan.
 - Updated setup and repository guidance to reflect the repaired runtime, local Git checkpoint and actual verification limits.
 - Labeled original audits/inventory as historical and added contributor instructions.

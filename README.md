@@ -4,6 +4,8 @@ School administration frontend using Next.js 16.4.0, React 18.2.0 and CSS. This 
 
 Start with the [project status and documentation index](PROJECT-STATUS.md). See [architecture](ARCHITECTURE.md) for every module and the proposed backend migration, and [contributing](CONTRIBUTING.md) for development rules.
 
+For database selection, security, Nepal latency, weak-network support, Docker and cost planning, start with [backend planning](docs/backend-planning/README.md). These are proposals; no backend is connected yet.
+
 ## Run
 
 Use Node.js 22.x (tested: 22.20.0). No environment file or database installation is needed.
@@ -39,4 +41,4 @@ Next.js 16 currently warns about React 18 deprecation; the tested build supports
 
 The original audit in `audit/` describes the downloaded code. See [repair verification](audit/FIX-VERIFICATION.md) for updates. Scripts in `audit/migrations` are historical and non-idempotent; do not rerun them.
 
-The downloaded ZIP originally had no Git metadata. A local Git release checkpoint now preserves the prototype; no GitHub remote is configured yet. See [publishing guide](DEPLOYMENT.md) and [release notes](CHANGELOG.md). The original MIT badge was removed because no license file was supplied; no licensing terms are asserted here.
+The downloaded ZIP originally had no Git metadata. A local Git release checkpoint now preserves the prototype, and origin is configured as https://github.com/Rajan-Prasaila-Yadav/scl.git. The owner reports deployment; the live URL and deployed commit are not yet verified. See [publishing guide](DEPLOYMENT.md) and [release notes](CHANGELOG.md). The original MIT badge was removed because no license file was supplied; no licensing terms are asserted here.

@@ -56,7 +56,7 @@ React 18 deprecation and Node module-type warnings were observed during passing 
 
 ## Version control and publishing
 
-A local Git repository now preserves tag v0.1.0-prototype. It does not contain the original GitHub repository history and no remote is configured yet. Follow [DEPLOYMENT.md](../DEPLOYMENT.md) for either a new empty repository or an existing repository with history. Do not force-push over existing upstream history.
+A local Git repository now preserves tag v0.1.0-prototype. It does not contain the original GitHub repository history. Origin is configured as https://github.com/Rajan-Prasaila-Yadav/scl.git; the owner reports deployment, but the live URL/commit remains unverified. Follow [DEPLOYMENT.md](../DEPLOYMENT.md) for publishing. Do not force-push over existing upstream history.
 
 The optional npm share command starts an external SSH tunnel targeting port 3000; it is not part of this port-3100 setup or the release deployment workflow. Do not use it as a substitute for the documented deployment process.
 

@@ -4,7 +4,7 @@ Updated: 10 October 2026. This document describes the repaired prototype, not th
 
 ## Current milestone
 
-EduCore is ready for UI demonstrations and feedback. It is not a live school operations system. The current task sequence is: preserve prototype, publish that version when requested, then begin new features/backend preparation.
+EduCore is ready for UI demonstrations and feedback. It is not a live school operations system. The owner has reported deploying the prototype. The current task is database/backend planning; the live URL, hosting settings and deployed commit still need verification.
 
 | Item | Current state |
 | --- | --- |
@@ -16,8 +16,8 @@ EduCore is ready for UI demonstrations and feedback. It is not a live school ope
 | Authentication | None; role selector is a UI preview |
 | Backend/database | Not connected |
 | Git | Local repository initialized; original upstream history was not recovered |
-| GitHub remote | Not configured at this documentation update |
-| Public deployment | Not performed in this session |
+| GitHub remote | origin points to https://github.com/Rajan-Prasaila-Yadav/scl.git; verified locally |
+| Public deployment | Reported by owner; live URL/host/commit not supplied or independently verified |
 | Baseline | Tag v0.1.0-prototype, commit d4cc547, branch release/prototype-v0.1.0 |
 
 The baseline tag and release branch must remain at their original commit. Documentation added afterward is on main; it does not rewrite the baseline or its ZIP. The ZIP is a source snapshot, not an installed application or browser-data backup.
@@ -27,6 +27,7 @@ The baseline tag and release branch must remain at their original commit. Docume
 - [README](README.md): quick start and important prototype behavior.
 - [Setup](audit/SETUP.md): installation, commands and troubleshooting.
 - [Architecture and backend preparation](ARCHITECTURE.md): current code structure and proposed migration.
+- [Backend planning folder](docs/backend-planning/README.md): researched database/stack recommendation, Nepal networking, offline behavior, security, Docker, cost and implementation milestones.
 - [Publishing guide](DEPLOYMENT.md): GitHub options, deployment and future branch workflow.
 - [Release notes](CHANGELOG.md): frozen milestone and subsequent documentation changes.
 - [Contribution guide](CONTRIBUTING.md): development and verification rules.
@@ -45,4 +46,4 @@ React 18 emits a deprecation warning under Next 16. Direct test imports emit a m
 
 ## Next milestone
 
-Publish the frozen prototype when the GitHub destination and hosting account are supplied. Develop the proposed asynchronous service layer on a feature branch after that milestone. No API-ready refactor or database integration has been implemented yet.
+Verify the reported deployment when its URL is supplied. Review the backend planning recommendation: managed PostgreSQL through Supabase, existing Next.js with modular TypeScript services, measured regional placement and explicit weak-network behavior. School/user counts and budget remain undecided; one school initially is the planning assumption. No API-ready refactor, database integration, Docker installation or provider purchase has been implemented.

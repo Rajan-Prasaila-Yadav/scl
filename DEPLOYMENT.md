@@ -4,6 +4,8 @@ Release tag: `v0.1.0-prototype`. Frozen deployment branch: `release/prototype-v0
 
 Documentation updates may exist on main after this checkpoint. Deploy the release branch for the exact prototype baseline. The original ZIP and tag deliberately retain the documentation as it existed at release time. Consult [current project status](PROJECT-STATUS.md) for subsequent clarifications.
 
+Current status: origin is already configured as https://github.com/Rajan-Prasaila-Yadav/scl.git. The owner reports deployment; the URL, host settings and deployed commit remain unverified. The initial remote-add instructions below are for a fresh checkout without origin; do not repeat remote creation in this configured folder.
+
 The local checkpoint includes application source, lockfile, documentation and validation workflow. Generated builds, dependencies, logs, local browser evidence, old downloaded HTML and release ZIPs stay outside Git. Existing local files are preserved. Git does not back up browser records or attachment bytes.
 
 ## Publish later to a NEW empty GitHub repository
