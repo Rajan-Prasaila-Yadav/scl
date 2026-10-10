@@ -2,6 +2,8 @@
 
 Release tag: `v0.1.0-prototype`. Frozen deployment branch: `release/prototype-v0.1.0`.
 
+Documentation updates may exist on main after this checkpoint. Deploy the release branch for the exact prototype baseline. The original ZIP and tag deliberately retain the documentation as it existed at release time. Consult [current project status](PROJECT-STATUS.md) for subsequent clarifications.
+
 The local checkpoint includes application source, lockfile, documentation and validation workflow. Generated builds, dependencies, logs, local browser evidence, old downloaded HTML and release ZIPs stay outside Git. Existing local files are preserved. Git does not back up browser records or attachment bytes.
 
 ## Publish later to a NEW empty GitHub repository
@@ -19,7 +21,7 @@ If origin already exists, inspect `git remote -v` before changing it. If using y
 
 ## Deploy this version on Vercel
 
-Import the GitHub repository as a Next.js project. Root directory is the folder containing package.json; for this prepared repository that is `./`. Select Node.js 22.x. Set the Production Branch to `release/prototype-v0.1.0` and verify the selected deployment commit matches the local release tag before publishing. If the import deploys the default branch first, the initial main commit is the same release; change the Production Branch before further development.
+Import the GitHub repository as a Next.js project. Root directory is the folder containing package.json; for this prepared repository that is `./`. Select Node.js 22.x. Set the Production Branch to `release/prototype-v0.1.0` and verify the selected deployment commit matches the local release tag before publishing. If the import deploys the default branch first, do not assume it matches the frozen release: main may contain later changes. Select/deploy the release branch before treating the public site as this baseline.
 
 The committed vercel.json specifies `npm ci` and `npm run validate`. Keep the Next.js output directory default. No environment variables or database are required for this release. The build runs source checks, regression tests and Next.js compilation. GitHub Actions independently runs validation on pushes and pull requests.
 

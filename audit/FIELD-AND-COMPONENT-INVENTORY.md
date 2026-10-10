@@ -1,3 +1,5 @@
+> Historical baseline from 9 October 2026. Findings, source line numbers and checked audit steps below describe the original download, not the repaired release. See [current project status](../PROJECT-STATUS.md) and [repair verification](FIX-VERIFICATION.md). Unchecked acceptance items are test scenarios, not a current defect list. JSON, screenshots and scripts linked below are local evidence excluded from Git/release archives.
+
 # Field and component inventory
 
 Generated from all page, component, and library JavaScript source using the installed Babel parser. One row per source control, including conditional and repeated controls; runtime repetitions are not expanded. Nearest JSX labels are context hints, not proof of accessible labeling. Dynamic field expressions are preserved. This inventory is source coverage, not a claim that every control was exercised in a browser.
@@ -2502,4 +2504,3 @@ Imports: None.
 
 - exportToCSV (line 1)
 - printToPDF (line 26)
-

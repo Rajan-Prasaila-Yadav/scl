@@ -1,3 +1,5 @@
+> Historical baseline from 9 October 2026. Findings, source line numbers and checked audit steps below describe the original download, not the repaired release. See [current project status](../PROJECT-STATUS.md) and [repair verification](FIX-VERIFICATION.md). Unchecked acceptance items are test scenarios, not a current defect list. JSON, screenshots and scripts linked below are local evidence excluded from Git/release archives.
+
 # EduCore — UI/UX and downloaded-project audit
 
 Audit date: 9 October 2026. Scope: the downloaded folder at `C:\Users\rajan\Downloads\School-main\School-main`.

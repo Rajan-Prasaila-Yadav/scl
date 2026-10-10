@@ -1,5 +1,7 @@
 # Repair verification — 10 October 2026
 
+This report describes repairs after the original audit. See [current project status](../PROJECT-STATUS.md) for release and deployment state. Named logs, JSON and screenshots are local evidence, intentionally excluded from Git and source ZIPs. The earlier eight-test result below was superseded by the twelve-test follow-up.
+
 ## Changes
 
 - Updated Next.js to 16.4.0; dependency audit returned zero known vulnerabilities.

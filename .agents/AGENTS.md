@@ -1,59 +1,22 @@
-# Vercel Deployment & Security Guidelines for AI Agent
+# Repository guidance
 
-## 🚀 Overview & Principles
-This workspace (`EduCore`) is configured for seamless deployment on Vercel. All future agent interactions, builds, and code additions must comply with Vercel security standards, Next.js optimization guidelines, and edge caching rules.
+This is the EduCore UI prototype. Read [project status](../PROJECT-STATUS.md), [architecture](../ARCHITECTURE.md), [contribution guide](../CONTRIBUTING.md) and [deployment guide](../DEPLOYMENT.md) before making changes.
 
----
+## Release preservation
 
-## 🔒 Security Best Practices
+- Preserve tag v0.1.0-prototype and branch release/prototype-v0.1.0 at their existing commit. Do not move them when updating documentation or adding features.
+- Keep future development on feature branches. Do not assume a local build has been deployed or a configured workflow has run remotely.
+- Do not rerun historical audit/migrations scripts or overwrite existing browser records with fixtures.
 
-### 1. HTTP Security Headers
-All requests served via Vercel are protected with production-grade HTTP security headers configured in [`vercel.json`](file:///e:/user/Schools/vercel.json):
-- `Strict-Transport-Security`: Enforces HSTS with a 2-year duration (`max-age=63072000; includeSubDomains; preload`).
-- `X-Frame-Options`: Set to `SAMEORIGIN` to mitigate clickjacking attacks.
-- `X-Content-Type-Options`: Set to `nosniff` to prevent MIME type sniffing.
-- `Referrer-Policy`: Configured to `origin-when-cross-origin`.
-- `Permissions-Policy`: Restricts camera, microphone, and geolocation access (`camera=(), microphone=(), geolocation=()`).
+## Configuration and data
 
-### 2. Secret & Environment Variable Hygiene
-- **Never commit `.env` or `.env.local` files containing real API secrets into version control.**
-- Always reference public environment variables with the `NEXT_PUBLIC_` prefix (e.g., `NEXT_PUBLIC_APP_URL`).
-- Use Vercel Environment Variables (`Vercel Dashboard -> Settings -> Environment Variables`) for Production, Preview, and Development environments.
+- Use Node.js 22.x and npm ci with the committed lockfile.
+- Run npm run validate for application/configuration changes. For documentation-only changes, check facts and links; do not claim tests were rerun if they were not.
+- Keep environment files and secrets out of Git. NEXT_PUBLIC_ is only for values intentionally exposed to browsers, never secrets.
+- Preserve the security headers configured in [vercel.json](../vercel.json). They do not replace authentication, authorization or server validation.
+- Current roles are client-side previews, and data is browser-local. Backend architecture in ARCHITECTURE.md is proposed, not implemented.
+- Keep dependencies deliberate and document material warnings and limitations.
 
----
+## Documentation
 
-## ⚡ Performance & Caching Rules
-
-### 1. Static Asset Caching
-- Static assets under `/_next/static/*` are configured with `Cache-Control: public, max-age=31536000, immutable`.
-- Utilize Next.js default page generation strategies (SSG / ISR / Dynamic SSR) efficiently.
-
-### 2. Bundle Optimization
-- Keep third-party dependencies lightweight.
-- Ensure all pages in `pages/` avoid unnecessary heavy client-side imports.
-
----
-
-## 🛠️ Vercel CLI & Deployment Commands
-
-- **Deploying to Vercel via CLI**:
-  ```bash
-  npx vercel
-  ```
-- **Deploying to Production**:
-  ```bash
-  npx vercel --prod
-  ```
-- **Pulling Vercel Environment Variables**:
-  ```bash
-  npx vercel env pull .env.local
-  ```
-
----
-
-## 📋 Pre-Deployment Checklists for Agent Tasks
-
-Before submitting PRs or executing production deployments, verify:
-- [x] [`vercel.json`](file:///e:/user/Schools/vercel.json) exists and contains valid security headers.
-- [x] Project builds cleanly via `npm run build` with zero syntax or SSR errors.
-- [x] All routes handle missing local storage gracefully on server side (using `typeof window !== 'undefined'`).
+Use repository-relative links, distinguish historical audit findings from current state, and record only verification actually performed. Never mark all workflows or security requirements complete solely because the build passes.

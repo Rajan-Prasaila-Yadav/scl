@@ -1,3 +1,5 @@
+> Historical baseline from 9 October 2026. Findings, source line numbers and checked audit steps below describe the original download, not the repaired release. See [current project status](../PROJECT-STATUS.md) and [repair verification](FIX-VERIFICATION.md). Unchecked acceptance items are test scenarios, not a current defect list. JSON, screenshots and scripts linked below are local evidence excluded from Git/release archives.
+
 # UI/UX completion checklist
 
 Use this after fixing the findings in [the audit](UI-UX-AUDIT.md). An unchecked box is a required or proposed acceptance test, not a claim that the feature is absent. Adapt optional workflows to the agreed school requirements. Use synthetic fixtures and retain a backup before testing delete/reset operations.

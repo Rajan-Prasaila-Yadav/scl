@@ -2,6 +2,8 @@
 
 School administration frontend using Next.js 16.4.0, React 18.2.0 and CSS. This is the UI/UX phase: data stays in the browser, with no database or authentication service.
 
+Start with the [project status and documentation index](PROJECT-STATUS.md). See [architecture](ARCHITECTURE.md) for every module and the proposed backend migration, and [contributing](CONTRIBUTING.md) for development rules.
+
 ## Run
 
 Use Node.js 22.x (tested: 22.20.0). No environment file or database installation is needed.

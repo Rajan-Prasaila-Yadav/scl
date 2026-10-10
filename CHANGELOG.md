@@ -1,5 +1,12 @@
 # Release notes
 
+## Unreleased — documentation follow-up
+
+- Added current project status, documentation index, page/module architecture and backend preparation plan.
+- Updated setup and repository guidance to reflect the repaired runtime, local Git checkpoint and actual verification limits.
+- Labeled original audits/inventory as historical and added contributor instructions.
+- Documentation-only changes on main; the v0.1.0-prototype tag, release branch and original ZIP remain unchanged.
+
 ## v0.1.0-prototype — 2026-10-10
 
 UI/UX demonstration checkpoint covering all 19 sidebar modules and the shared dashboard alias.
