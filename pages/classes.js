@@ -1572,19 +1572,11 @@ export default function Classes() {
 
             {/* DETAIL VIEW FOOTER */}
             <div style={{ padding: '0 24px 24px 24px' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  marginTop: '16px',
-                  borderTop: '1px solid var(--border)',
-                  paddingTop: '18px',
-                }}
-              >
+              <div className="class-detail-footer">
                 <button className="btn btn-ghost" onClick={() => setViewMode('list')}>
                   <i className="fa-solid fa-arrow-left"></i> Back to Classes List
                 </button>
-                <div style={{ display: 'flex', gap: '8px' }}>
+                <div className="class-detail-footer-actions">
                   <button className="btn btn-ghost" onClick={() => editClass(selectedClass)}>
                     <i className="fa-solid fa-pen"></i> Edit Class Settings
                   </button>

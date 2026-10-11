@@ -35,19 +35,23 @@ export default function ClassFees({ classroom, fees, onSaved }) {
     onSaved(updated)
     setDraft(null)
   }
-  return <section style={{padding:24}}>
-    <h3>Fees for {classroom.name} {classroom.section}</h3>
-    <p>{assigned.length} assigned fees · {assigned.filter(f => f.status === 'active').length} active</p>
-    <p>Rates are per student per billing unit. Student overrides can change the final invoice. Existing invoices keep their original amounts.</p>
-    {canPerform('edit', 'Fees') && <button className="btn btn-primary" onClick={edit}>Manage class fees</button>}
-    <Link href="/fees" className="btn btn-ghost">Open Fee Configurator</Link>
-    {assigned.length ? <div className="table-wrap"><table className="roles-table"><thead><tr><th>Fee</th><th>Frequency</th><th>Base rate</th><th>Class rate</th><th>Status</th></tr></thead><tbody>{assigned.map(fee => <tr key={fee.id}><td>{fee.name}</td><td>{fee.frequency}</td><td>{currencySymbol()}{Number(fee.amount).toFixed(2)}</td><td>{currencySymbol()}{classRate(fee,classroom.id).toFixed(2)} {fee.classRates?.[classroom.id] !== undefined && fee.classRates[classroom.id] !== '' ? '(class override)' : '(base)'}</td><td>{fee.status}</td></tr>)}</tbody></table></div> : <p>No fees assigned to this class yet.</p>}
-    <h4>Active totals by frequency</h4>
-    {Object.entries(totals).map(([frequency, total]) => <p key={frequency}>{frequency}: {currencySymbol()}{total.toFixed(2)} per student / unit</p>)}
-    {!Object.keys(totals).length && <p>No active charges.</p>}
-    {draft && <Dialog className="modal-overlay"><div className="modal" style={{maxWidth:760,width:'95%',maxHeight:'90vh',overflowY:'auto',padding:24}}><h3>Manage fees for {classroom.name} {classroom.section}</h3><p>Select fee assignments and change rates for this class only. Blank uses the base rate; zero is a free class rate. Unchecking removes this class assignment. Inactive fees do not generate invoices.</p><form onSubmit={save}>
+  return <section className="class-fees">
+    <div className="class-fees-heading">
+      <div><h3>Fees for {classroom.name} {classroom.section}</h3><p className="class-fees-count">{assigned.length} assigned fees <span aria-hidden="true">·</span> {assigned.filter(f => f.status === 'active').length} active</p></div>
+      <div className="class-fees-actions">
+        {canPerform('edit', 'Fees') && <button type="button" className="btn btn-primary" onClick={edit}><i className="fa-solid fa-sliders" aria-hidden="true"/>Manage class fees</button>}
+        <Link href="/fees" className="btn btn-ghost"><i className="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"/>Fee Configurator</Link>
+      </div>
+    </div>
+    <p className="class-fees-note"><i className="fa-solid fa-circle-info" aria-hidden="true"/><span>Rates are per student per billing unit. Student overrides can change the final invoice. Existing invoices keep their original amounts.</span></p>
+    {assigned.length ? <div className="table-wrap"><table className="roles-table"><thead><tr><th>Fee</th><th>Frequency</th><th>Base rate</th><th>Class rate</th><th>Status</th></tr></thead><tbody>{assigned.map(fee => <tr key={fee.id}><td>{fee.name}</td><td>{fee.frequency}</td><td>{currencySymbol()}{Number(fee.amount).toFixed(2)}</td><td>{currencySymbol()}{classRate(fee,classroom.id).toFixed(2)} {fee.classRates?.[classroom.id] !== undefined && fee.classRates[classroom.id] !== '' ? '(class override)' : '(base)'}</td><td><span className={`badge ${fee.status === 'active' ? 'badge-active' : 'badge-gray'}`}>{fee.status === 'active' ? 'Active' : 'Inactive'}</span></td></tr>)}</tbody></table></div> : <p>No fees assigned to this class yet.</p>}
+    <div className="class-fees-summary"><h4>Active totals by frequency</h4><div className="class-fees-total-grid">
+      {Object.entries(totals).map(([frequency, total]) => <div className="class-fees-total" key={frequency}><span>{frequency}</span><strong>{currencySymbol()}{total.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</strong><small>per student / unit</small></div>)}
+      {!Object.keys(totals).length && <p>No active charges.</p>}
+    </div></div>
+    {draft && <Dialog className="modal-overlay"><div className="modal class-fees-modal"><h3>Manage fees for {classroom.name} {classroom.section}</h3><p>Select fee assignments and change rates for this class only. Blank uses the base rate; zero is a free class rate. Unchecking removes this class assignment. Inactive fees do not generate invoices.</p><form onSubmit={save}>
       {fees.map(fee => <div key={fee.id} style={{padding:12,borderBottom:'1px solid var(--border)'}}><label style={{display:'flex',gap:8}}><input type="checkbox" checked={draft[fee.id].assigned} onChange={e => setDraft({...draft,[fee.id]:{...draft[fee.id],assigned:e.target.checked}})}/>{fee.name} · {fee.frequency} · {fee.status}</label><label>Class rate ({currencySymbol()})<input className="form-input" aria-label={`Class rate for ${fee.name}`} type="number" min="0" step="0.01" disabled={!draft[fee.id].assigned} placeholder={`Base ${fee.amount}`} value={draft[fee.id].rate} onChange={e => setDraft({...draft,[fee.id]:{...draft[fee.id],rate:e.target.value}})}/></label></div>)}
-      {!fees.length && <p>Create a fee in Fee Configurator first.</p>}{error && <p role="alert">{error}</p>}<div style={{display:'flex',gap:12,marginTop:20}}><button type="button" className="btn btn-ghost" onClick={() => setDraft(null)}>Cancel</button><button className="btn btn-primary" disabled={!fees.length} type="submit">Save class fees</button></div>
+      {!fees.length && <p>Create a fee in Fee Configurator first.</p>}{error && <p role="alert">{error}</p>}<div className="class-fees-modal-actions"><button type="button" className="btn btn-ghost" onClick={() => setDraft(null)}>Cancel</button><button className="btn btn-primary" disabled={!fees.length} type="submit">Save class fees</button></div>
     </form></div></Dialog>}
   </section>
 }
