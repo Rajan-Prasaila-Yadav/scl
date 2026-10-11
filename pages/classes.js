@@ -1,3 +1,5 @@
+import ClassFees, { assignedToClass } from '../components/ClassFees'
+import { INITIAL_FEES } from '../lib/feeData'
 import { validateClassCapacity } from '../lib/registryValidation'
 import { allowDeletion } from '../lib/recordIntegrity'
 import { requirePermission } from '../lib/permissions'
@@ -33,6 +35,7 @@ const emptyForm = {
 }
 
 export default function Classes() {
+  const [fees, setFees] = useState([])
   const [classes, setClasses] = useState(INITIAL_CLASSES)
   const [subjects, setSubjects] = useState(INITIAL_SUBJECTS)
   const [allStudents, setAllStudents] = useState(INITIAL_STUDENTS)
@@ -75,6 +78,7 @@ export default function Classes() {
   useEffect(() => {
     const storedClasses = readStoredList(STORAGE_KEYS.classes, INITIAL_CLASSES)
     setClasses(storedClasses)
+    setFees(readStoredList('educore.fees', INITIAL_FEES))
     setSelectedClassId(storedClasses[0]?.id || null)
     setSubjects(readStoredList(STORAGE_KEYS.subjects, INITIAL_SUBJECTS))
     setAllStudents(readStoredList(STORAGE_KEYS.students, INITIAL_STUDENTS))
@@ -789,7 +793,7 @@ export default function Classes() {
                       Class Code {sortBy === 'classCode' && (sortDir === 'asc' ? '▲' : '▼')}
                     </th>
                     <th>Class Teacher Name</th>
-                    <th>Class Monitor Name</th>
+                    <th>Class Monitor Name</th><th>Fees</th>
                     <th onClick={() => toggleSort('room')} style={{ cursor: 'pointer' }}>
                       Classroom Number {sortBy === 'room' && (sortDir === 'asc' ? '▲' : '▼')}
                     </th>
@@ -806,7 +810,7 @@ export default function Classes() {
                 <tbody>
                   {filteredClasses.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="roles-empty">
+                      <td colSpan={10} className="roles-empty">
                         No classrooms match the filters.
                       </td>
                     </tr>
@@ -853,6 +857,7 @@ export default function Classes() {
                               <span style={{ color: 'var(--t3)', fontSize: '11px' }}>Not assigned</span>
                             )}
                           </td>
+                          <td onClick={event => event.stopPropagation()}><button className="btn btn-ghost btn-sm" onClick={() => {setSelectedClassId(item.id);setDetailTab('fees');setViewMode('detail')}}>{fees.filter(f => assignedToClass(f,item.id)).length} fees</button></td>
                           <td>{item.room || '—'}</td>
                           <td>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -1222,10 +1227,13 @@ export default function Classes() {
               <button className={detailTab === 'subjects' ? 'active' : ''} onClick={() => setDetailTab('subjects')}>
                 <i className="fa-solid fa-book"></i> Subjects Curriculum ({selectedSubjects.length})
               </button>
+              <button className={detailTab === 'fees' ? 'active' : ''} onClick={() => setDetailTab('fees')}>Fees ({fees.filter(f => assignedToClass(f,selectedClass.id)).length})</button>
               <button className={detailTab === 'teachers' ? 'active' : ''} onClick={() => setDetailTab('teachers')}>
                 <i className="fa-solid fa-chalkboard-user"></i> Teaching Faculty ({teachersInSelectedClass.length})
               </button>
             </div>
+
+            {detailTab === 'fees' && <ClassFees key={selectedClass.id} classroom={selectedClass} fees={fees} onSaved={updated => {setFees(updated);showToast('Class fees saved', 'success')}} />}
 
             {/* TAB CONTENT: OVERVIEW */}
             {detailTab === 'overview' && (
