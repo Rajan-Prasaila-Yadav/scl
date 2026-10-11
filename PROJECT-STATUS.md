@@ -1,10 +1,10 @@
 # Project status and documentation index
 
-Updated: 10 October 2026. This document describes the repaired prototype, not the original ZIP.
+Updated: 11 October 2026. This document describes the repaired prototype, not the original ZIP.
 
 ## Current milestone
 
-EduCore is ready for UI demonstrations and feedback. It is not a live school operations system. The owner has reported deploying the prototype. The current task is database/backend planning; the live URL, hosting settings and deployed commit still need verification.
+EduCore is ready for UI demonstrations and feedback. It is not a live school operations system. The owner has reported deploying the prototype. Dynamic academics and billing are implemented locally on a feature branch; the live URL, hosting settings and deployed commit still need verification.
 
 | Item | Current state |
 | --- | --- |
@@ -40,10 +40,14 @@ The baseline tag and release branch must remain at their original commit. Docume
 
 The release passed source parsing/unresolved-identifier checks, twelve regression tests and a production build. Browser checks covered all 19 sidebar destinations plus selected forms, persistence, permission previews and narrow layouts. This is not exhaustive testing of every field, role combination, browser, printer or concurrent-user scenario. GitHub Actions is configured but has not run on GitHub yet; Vercel configuration has not been verified by a real deployment.
 
-Known boundaries: academic year is a display label; role scopes are planning metadata; some settings are configuration only; unsupported billing frequencies require new workflows. Wishes save drafts rather than send messages. Currency changes presentation rather than exchange amounts. Backups contain metadata without attachment bytes or a restore UI. Browser data is separate for each origin and does not transfer when publishing.
+Known boundaries: academic year is a display label; role scopes are planning metadata; some settings are configuration only; billing runs are manual and support six frequencies; automatic scheduling and partial payments remain future work. Wishes save drafts rather than send messages. Currency changes presentation rather than exchange amounts. Backups contain metadata without attachment bytes or a restore UI. Browser data is separate for each origin and does not transfer when publishing.
 
 React 18 emits a deprecation warning under Next 16. Direct test imports emit a module-type warning. The last dependency audit recorded no known vulnerabilities at the time checked; this is not an ongoing security guarantee. Check again before deployment.
 
 ## Next milestone
 
 Verify the reported deployment when its URL is supplied. Review the backend planning recommendation: managed PostgreSQL through Supabase, existing Next.js with modular TypeScript services, measured regional placement and explicit weak-network behavior. School/user counts and budget remain undecided; one school initially is the planning assumption. No API-ready refactor, database integration, Docker installation or provider purchase has been implemented.
+
+## Local feature update
+
+See [dynamic academics and fees](docs/DYNAMIC-ACADEMICS-AND-FEES.md) for class/teacher assignment, billing rules and payer relationship management. These changes have not been pushed or deployed. The frozen release remains unchanged.

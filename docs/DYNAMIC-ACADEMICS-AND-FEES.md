@@ -1,0 +1,46 @@
+# Dynamic academics and fees
+
+Updated: 11 October 2026. Implemented in the browser-local prototype on feature/dynamic-academics-and-fees. No backend or public deployment is included.
+
+## Subjects and timetable
+
+Create or edit a subject in Subjects. Select the classes that teach it, then choose an active teaching staff member for each class. Timetable uses that assignment and rejects mismatched teachers or subjects not linked to the class. Existing class, teacher and room overlap checks remain.
+
+Remove affected timetable/exam sessions before unlinking or deactivating a subject. Remove affected timetable sessions before changing its assigned teacher, then recreate them using the new assignment. Referenced records cannot be freely deleted. This prototype supports one assigned teacher per class/subject, not co-teaching or effective-dated staffing.
+
+## Fee configuration and billing
+
+In Fee Management, open Fee Configurator. Add/edit a fee name, positive base amount, frequency and applicable classes. Each selected class can override the base rate; leave the override blank to use the base. Zero class rates are allowed. Existing student-specific overrides take precedence over class rates, then the base rate.
+
+Open Generate Invoices, choose frequency, class scope, start date/time and quantity. Select the fee structures and review student amounts before generating. Only active students and active applicable fees are billed. Each run uses one frequency; repeat for other frequencies.
+
+- Hourly: explicitly entered hours; fractional hours are supported.
+- Daily: calendar days, independent of attendance.
+- Weekly: whole weeks starting Monday.
+- Monthly: whole calendar months starting on day 1.
+- Yearly: whole calendar years starting January 1, not academic-year anniversaries.
+- One-Time: once per student per fee structure, across billing runs.
+
+Start is included and end excluded. Dates are local wall-clock values. Overlapping existing charges for the same fee are skipped in full, not prorated. Separate fee structures can be billed in the same period. Legacy monthly records use their available month/name information for duplicate checks; historical records lack the full period metadata of new invoices.
+
+Generated invoices snapshot fee name, rate, quantity and period. Editing/deleting a fee structure does not rewrite those invoices. Generation is manual: selecting Monthly does not schedule an automatic recurring job.
+
+## Collections and payer relationships
+
+Open Pay Fee on an unpaid invoice. Enter the actual payer name and a specific relationship to the student. Add a custom relationship by name; it becomes reusable in future dropdowns. Manage payer relationships adds, renames and removes future choices. Names are trimmed, duplicate names are rejected case-insensitively, and generic Other/custom are rejected. Existing receipts preserve their original relationship text. These are reusable relationship labels, not a verified registry of payer identities or guardian permissions.
+
+Discount and tax accept a percentage or a fixed amount, including decimals. Discount applies first; percentage tax uses the discounted subtotal. Example: 300 minus 12.5% discount (37.50) plus fixed tax 5.55 gives 268.05. Discounts cannot exceed the subtotal; percentages must be 0–100. Totals are rounded to two decimals. Receipt words include paisa. Tax choices are configurable demo calculations, not a determination of applicable tax law.
+
+Collection settles the full calculated total. Partial payments, refunds, credit notes, automated collections and gateway verification are not implemented.
+
+## Persistence and backend migration
+
+All data remains in this browser origin. Role checks are UI previews. No real payment is processed. Browser storage cannot provide database transactions or authoritative multi-user accounting. A backend must enforce school ownership, permissions, period uniqueness, immutable invoice snapshots, financial audit history and idempotent payment operations in transactions. Keep fee configuration separate from issued invoices and payer labels separate from people/guardian associations.
+
+## Verification
+
+`npm run validate` runs source checks, twenty regression tests and a production build. Tests cover six frequencies, invalid dates/quantities, rates, zero overrides, overlapping/one-time charges, decimal discount/tax, relationship names, academic assignment rules and receipt words.
+
+Browser checks on an isolated local origin verified five weekly invoices totaling 1500, repeat generation skipping all five charges, a 300 payment preview with 12.5% discount and fixed 5.55 tax totaling 268.05, addition/reuse of Grandfather, and persistence of a paid demo invoice after reload. This is targeted verification, not exhaustive testing of every role/device or financial scenario.
+
+Additional browser checks verified relationship rename to Grandparent while the historical receipt retained Grandfather, and creation/reopening of Prototype Robotics with Class 8 and Rakesh Sharma preserved.

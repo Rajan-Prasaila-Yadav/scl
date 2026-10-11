@@ -1,3 +1,4 @@
+import { scheduleAssignmentError } from '../lib/academicAssignments'
 import { getRaw, setRaw } from '../lib/storage'
 import { requirePermission } from '../lib/permissions'
 import Dialog from '../components/Dialog'
@@ -455,6 +456,11 @@ export default function Timetable() {
         showToast('Please fill in Class, Period, Subject and Teacher', 'error')
         return
       }
+    }
+
+    if (!isBreakForm) {
+      const assignmentIssue = scheduleAssignmentError(scheduleForm, classes, subjects, staff)
+      if (assignmentIssue) { showToast(assignmentIssue, 'error'); return }
     }
 
     if (conflicts.teacherConflict) {

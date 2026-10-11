@@ -27,7 +27,7 @@ For production preview, stop the development server, run `npm.cmd run validate`,
 - Attendance begins unmarked, persists and rejects future dates. Existing records are preserved.
 - Settings save locally. Communication preferences do not deliver messages; birthday wishes save drafts.
 - The role selector is a UI preview, not authentication. Scope constraints are labeled planning metadata and do not filter records by campus/class.
-- Monthly batch invoices respect active students, classes, duplicate periods and one-time fees. Weekly/yearly/hourly structures are rejected by the monthly generator and need a separately defined billing workflow.
+- Dynamic billing supports hourly, daily, weekly, monthly, one-time and yearly fees, class rates and duplicate-period checks. See [dynamic academics and fees](docs/DYNAMIC-ACADEMICS-AND-FEES.md) for workflows and calendar rules.
 - Academic year is a display label, not a separate dataset. Currency changes presentation only. Default tax and bank settings are metadata; payment forms determine their own tax values.
 - Closed finance summaries retain saved totals; newly closed days snapshot line items. Shared persistence rejects changes to closed-day payment history.
 - CSV exports contain CSV. PDF actions open printable views for browser Save as PDF.
@@ -35,7 +35,7 @@ For production preview, stop the development server, run `npm.cmd run validate`,
 
 ## Checks
 
-`npm run check` parses application source and detects unresolved identifiers. `npm test` runs twelve regression tests. `npm run build` builds production routes. `npm run validate` runs all three.
+`npm run check` parses application source and detects unresolved identifiers. `npm test` runs twenty regression tests. `npm run build` builds production routes. `npm run validate` runs all three.
 
 Next.js 16 currently warns about React 18 deprecation; the tested build supports it. Node's direct test imports produce a module-type warning.
 

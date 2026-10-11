@@ -1,7 +1,9 @@
 import { getRaw } from '../lib/storage'
 import { currencySymbol } from '../lib/schoolConfig'
 import { requirePermission } from '../lib/permissions'
-import { eligibleFees, normalizeBillingPeriod } from '../lib/validation'
+import { BILLING_FREQUENCIES, buildBillingPreview, paymentTotals, relationshipError, normalizeRelationship } from '../lib/billing'
+import BillingGenerator from '../components/BillingGenerator'
+import PayerRelationships from '../components/PayerRelationships'
 import Dialog from '../components/Dialog'
 import React, { useState, useEffect, useMemo } from 'react'
 import Layout from '../components/Layout'
@@ -35,6 +37,7 @@ const parseMonthsCount = (monthStr) => {
 }
 
 const getFeeItemDetails = (feeItem, monthStr) => {
+  if (feeItem.quantity !== undefined) return { ...feeItem, qty: feeItem.quantity, total: feeItem.amount }
   const monthsCount = parseMonthsCount(monthStr)
   const freq = feeItem.frequency || 'Monthly'
   let rate = feeItem.rate !== undefined ? feeItem.rate : feeItem.amount
@@ -116,12 +119,6 @@ export default function Fees() {
   })
 
   const [showBatchModal, setShowBatchModal] = useState(false)
-  const [batchForm, setBatchForm] = useState({
-    billingMonth: '',
-    targetClass: 'all',
-    selectedFeeIds: [] // Track which fees to generate in the batch run
-  })
-
   const [activeReceipt, setActiveReceipt] = useState(null)
 
   useEffect(() => {
@@ -183,14 +180,6 @@ export default function Fees() {
     return member ? member.name : `Staff (ID: ${userId})`
   }
 
-  const availableFeesForBatch = useMemo(() => {
-    return fees.filter(
-      (f) =>
-        f.status === 'active' && ['Monthly','One-Time'].includes(f.frequency) &&
-        (batchForm.targetClass === 'all' || (f.classIds || []).includes(Number(batchForm.targetClass)))
-    )
-  }, [fees, batchForm.targetClass])
-
   // Flat list of all transactions across all students
   const allTransactions = useMemo(() => {
     const list = []
@@ -210,7 +199,7 @@ export default function Fees() {
           className,
           defaultGuardian: guardian,
           // Calculate dynamic invoice amount or fallback
-          invoiceAmount: p.amount || p.amountPaid || 4500
+          invoiceAmount: p.amount ?? p.amountPaid ?? 4500
         })
       })
     })
@@ -270,42 +259,8 @@ export default function Fees() {
   const calculatedTotals = useMemo(() => {
     if (!selectedTransaction) return { subtotal: 0, discount: 0, tax: 0, grandTotal: 0, words: '' }
     const subtotal = selectedTransaction.invoiceAmount || 0
-    let discount = 0
-    const dType = paymentForm.discountType || 'none'
-    const dVal = Number(paymentForm.customDiscount) || 0
-
-    if (dType === '5%') discount = subtotal * 0.05
-    else if (dType === '10%') discount = subtotal * 0.10
-    else if (dType === '25%') discount = subtotal * 0.25
-    else if (dType === '50%') discount = subtotal * 0.50
-    else if (dType === '100%') discount = subtotal
-    else if (dType === 'customPercent') discount = subtotal * (dVal / 100)
-    else if (dType === 'customAmount') discount = dVal
-
-    discount = Math.min(subtotal, Math.max(0, discount)) // Keep it between 0 and subtotal
-
-    let tax = 0
-    const tType = paymentForm.taxType || 'none'
-    const tVal = Number(paymentForm.customTax) || 0
-    const taxableAmount = Math.max(0, subtotal - discount)
-
-    if (tType === '13%') tax = taxableAmount * 0.13
-    else if (tType === '5%') tax = taxableAmount * 0.05
-    else if (tType === 'customPercent') tax = taxableAmount * (tVal / 100)
-    else if (tType === 'customAmount') tax = tVal
-
-    tax = Math.max(0, tax)
-
-    const grandTotal = Math.max(0, subtotal - discount + tax)
-    const words = numberToWords(grandTotal)
-
-    return {
-      subtotal,
-      discount,
-      tax,
-      grandTotal,
-      words
-    }
+    const totals = paymentTotals(subtotal, paymentForm)
+    return { ...totals, words: numberToWords(totals.grandTotal) }
   }, [selectedTransaction, paymentForm.discountType, paymentForm.customDiscount, paymentForm.taxType, paymentForm.customTax])
 
 
@@ -353,7 +308,7 @@ export default function Fees() {
     setSelectedTransaction(tx)
     setPaymentForm({
       payerName: tx.defaultGuardian || '',
-      relationship: 'Father',
+      relationship: payerRelationships.includes('Father') ? 'Father' : (payerRelationships[0] || 'custom'),
       paymentMode: 'Cash',
       onlineApp: 'E-Sewa',
       customOnlineApp: '',
@@ -371,6 +326,8 @@ export default function Fees() {
     e?.preventDefault?.(); if (!requirePermission('edit')) return
 
     e.preventDefault()
+    if (calculatedTotals.error) { showToast(calculatedTotals.error, 'error'); return }
+    if (!selectedTransaction || selectedTransaction.status === 'paid') return
     if (!paymentForm.payerName.trim()) {
       showToast('Payer Name is required', 'error')
       return
@@ -397,26 +354,27 @@ export default function Fees() {
 
     let finalRelation = ''
     if (paymentForm.relationship === 'custom') {
-      const customRel = paymentForm.customRelationship.trim()
-      if (!customRel) {
-        showToast('Custom relationship name is required', 'error')
+      const customRel = normalizeRelationship(paymentForm.customRelationship)
+      const relationIssue = relationshipError(customRel, [])
+      if (relationIssue) {
+        showToast(relationIssue, 'error')
         return
       }
-      finalRelation = customRel
-      if (!payerRelationships.includes(customRel)) {
+      finalRelation = payerRelationships.find(rel => rel.toLowerCase() === customRel.toLowerCase()) || customRel
+      if (!payerRelationships.some(rel => rel.toLowerCase() === customRel.toLowerCase())) {
         const updatedRels = [...payerRelationships, customRel]
         setPayerRelationships(updatedRels)
         writeStoredList('educore.payerRelationships', updatedRels)
       }
     } else {
       finalRelation = paymentForm.relationship
+      if (!payerRelationships.includes(finalRelation)) { showToast('Choose an existing relationship or add a specific one.', 'error'); return }
     }
 
     const now = new Date()
     const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
 
-    setStudents((prevStudents) =>
-      prevStudents.map((st) => {
+    const updatedStudents = students.map((st) => {
         if (st.id === selectedTransaction.studentId) {
           const updatedPayments = (st.payments || []).map((pay) => {
             if (pay.invoiceNo === selectedTransaction.invoiceNo) {
@@ -445,115 +403,32 @@ export default function Fees() {
         }
         return st
       })
-    )
+    if (!writeStoredList(STORAGE_KEYS.students, updatedStudents)) return
+    setStudents(updatedStudents)
 
     setShowPaymentModal(false)
     showToast('Payment recorded successfully', 'success')
   }
 
-  // Action: Open Batch Generate Modal
   const openBatchGenerate = () => {
-    if (!hasEditPermission) {
-      showToast('You do not have permission to run invoice generation', 'error')
-      return
-    }
-    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-    const today = new Date()
-    const defaultBillingMonth = `${months[today.getMonth()]} ${today.getFullYear()}`
-    
-    // Default select all active fees in class selection
-    setBatchForm({
-      billingMonth: defaultBillingMonth,
-      targetClass: 'all',
-      selectedFeeIds: fees.filter(f => f.status === 'active' && ['Monthly','One-Time'].includes(f.frequency)).map(f => f.id)
-    })
+    if (!requirePermission('create')) return
     setShowBatchModal(true)
   }
-
-  // Action: Run Batch Invoicing Generator
-  const handleRunBatchGenerate = (e) => {
-    e?.preventDefault?.(); if (!requirePermission('create')) return
-
-    e.preventDefault()
-    const billingMonth = normalizeBillingPeriod(batchForm.billingMonth.trim())
-    if (!billingMonth) {
-      showToast('Enter a valid billing month, such as 2026-10', 'error')
-      return
-    }
-
-    if (batchForm.selectedFeeIds.length === 0) {
-      showToast('Please select at least one fee structure to generate', 'error')
-      return
-    }
-
-    let targetStudents = students
-    if (batchForm.targetClass !== 'all') {
-      targetStudents = students.filter((s) => String(s.classId) === String(batchForm.targetClass))
-    }
-
-    if (targetStudents.length === 0) {
-      showToast('No students found in the selected class', 'error')
-      return
-    }
-
-    // Get selected fee templates
-    const selectedFeeTemplates = fees.filter((f) => batchForm.selectedFeeIds.includes(f.id))
-
-    if (selectedFeeTemplates.some(f => !['Monthly','One-Time'].includes(f.frequency))) { showToast('Batch generation supports monthly and one-time fees. Weekly, yearly and hourly fees need a manually defined billing period.', 'error'); return }
-    let invoicesCreated = 0
-
-    const updatedStudents = students.map((st) => {
-        const matchesClass = batchForm.targetClass === 'all' || String(st.classId) === String(batchForm.targetClass)
-        if (!matchesClass || st.status !== 'active') return st
-
-        // Check if invoice for this month already exists to prevent duplicate runs
-        const currentPayments = st.payments || []
-        const alreadyBilled = currentPayments.some((pay) => normalizeBillingPeriod(pay.month || '') === billingMonth)
-        if (alreadyBilled) return st
-
-
-        // Check student-specific fee overrides
-        const applicableFees = eligibleFees(selectedFeeTemplates, st).filter(f => f.frequency !== 'One-Time' || !currentPayments.some(p => (p.feesBreakdown || []).some(item => item.feeId === f.id || item.name === f.name)))
-        if (!applicableFees.length) return st
-        invoicesCreated++
-        const studentBreakdown = applicableFees.map((f) => {
-          const overrideVal = st.feeOverrides && st.feeOverrides[f.id] !== undefined ? st.feeOverrides[f.id] : null
-          const finalAmount = overrideVal !== null && overrideVal !== '' ? Number(overrideVal) : f.amount
-          return {
-            feeId: f.id,
-            name: f.name,
-            amount: finalAmount,
-            frequency: f.frequency
-          }
-        })
-        const studentTotal = studentBreakdown.reduce((sum, item) => sum + item.amount, 0)
-
-        const newInvoice = {
-          id: makeId(),
-          invoiceNo: `SLIP-${new Date().getFullYear()}-${makeId().toString(36).toUpperCase()}`,
-          amount: studentTotal, // Consolidated student-specific due amount
-          amountPaid: 0,
-          month: billingMonth,
-          status: 'pending',
-          paymentDate: '—',
-          paidBy: '—',
-          payerRelation: '—',
-          feesBreakdown: studentBreakdown // Student-specific breakdown items
-        }
-
-        return {
-          ...st,
-          payments: [...currentPayments, newInvoice]
-        }
+  const handleRunBatchGenerate = (form) => {
+    if (!requirePermission('create')) return
+    try {
+      const preview = buildBillingPreview(students, fees, form)
+      if (!preview.invoices.length) { showToast('No new eligible charges to generate.', 'info'); return }
+      const updated = students.map(student => {
+        const row = preview.invoices.find(item => item.studentId === student.id)
+        if (!row) return student
+        const invoice = { id:makeId(), invoiceNo:`SLIP-${new Date().getFullYear()}-${makeId().toString(36).toUpperCase()}`, amount:row.amount, amountPaid:0, month:preview.period.label, status:'pending', paymentDate:'—', paidBy:'—', payerRelation:'—', feesBreakdown:row.lines }
+        return { ...student, payments:[...(student.payments || []),invoice] }
       })
-    setStudents(updatedStudents)
-
-    setShowBatchModal(false)
-    if (invoicesCreated > 0) {
-      showToast(`Batch run successful! Generated ${invoicesCreated} invoices.`, 'success')
-    } else {
-      showToast('Invoices for this billing month already exist for the selected class', 'info')
-    }
+      if (!writeStoredList(STORAGE_KEYS.students, updated)) return
+      setStudents(updated); setShowBatchModal(false)
+      showToast(`Generated ${preview.invoices.length} invoices. ${preview.skipped} duplicate/overlapping charges skipped.`, 'success')
+    } catch (error) { showToast(error.message, 'error') }
   }
 
   // Action: Open Print Modal
@@ -575,6 +450,7 @@ export default function Fees() {
         frequency: fee.frequency,
         description: fee.description || '',
         classIds: fee.classIds || [],
+        classRates: fee.classRates || {},
         status: fee.status || 'active'
       })
     } else {
@@ -585,6 +461,7 @@ export default function Fees() {
         frequency: 'Monthly',
         description: '',
         classIds: [],
+        classRates: {},
         status: 'active'
       })
     }
@@ -600,35 +477,28 @@ export default function Fees() {
       showToast('Fee Name is required', 'error')
       return
     }
-    if (!feeForm.amount || Number(feeForm.amount) <= 0) {
+    if (feeForm.amount === '' || !Number.isFinite(Number(feeForm.amount)) || Number(feeForm.amount) <= 0) {
       showToast('Please enter a valid amount', 'error')
       return
     }
 
-    if (selectedFee) {
-      // Editing
-      setFees((prevFees) =>
-        prevFees.map((f) =>
-          f.id === selectedFee.id
-            ? { ...f, ...feeForm, name: feeForm.name.trim(), amount: Number(feeForm.amount) }
-            : f
-        )
-      )
-      showToast('Fee structure updated successfully', 'success')
-    } else {
-      // Creating
-      const newFee = {
-        id: makeId(),
-        name: feeForm.name.trim(),
-        amount: Number(feeForm.amount),
-        frequency: feeForm.frequency,
-        description: feeForm.description.trim(),
-        classIds: feeForm.classIds,
-        status: feeForm.status
-      }
-      setFees((prevFees) => [...prevFees, newFee])
-      showToast('New fee structure added', 'success')
+    if (!feeForm.classIds.length) { showToast('Assign at least one class.', 'error'); return }
+    if (!BILLING_FREQUENCIES.includes(feeForm.frequency)) { showToast('Choose a supported frequency.', 'error'); return }
+    if (fees.some(f => f.id !== selectedFee?.id && f.name.trim().toLowerCase() === feeForm.name.trim().toLowerCase())) { showToast('A fee with this name already exists.', 'error'); return }
+    if (Object.values(feeForm.classRates || {}).some(value => value !== '' && (!Number.isFinite(Number(value)) || Number(value) < 0))) { showToast('Class rates must be nonnegative numbers.', 'error'); return }
+
+    const savedFee = {
+      ...feeForm,
+      id: selectedFee?.id ?? makeId(),
+      name: feeForm.name.trim(),
+      description: feeForm.description.trim(),
+      amount: Number(feeForm.amount),
+      classRates: feeForm.classRates || {}
     }
+    const updatedFees = selectedFee ? fees.map(f => f.id === selectedFee.id ? savedFee : f) : [...fees, savedFee]
+    if (!writeStoredList('educore.fees', updatedFees)) return
+    setFees(updatedFees)
+    showToast(selectedFee ? 'Fee structure updated successfully' : 'New fee structure added', 'success')
     setShowFeeModal(false)
   }
 
@@ -643,7 +513,9 @@ export default function Fees() {
     if (!confirm('Are you sure you want to remove this fee structure? This will not affect already generated student invoices.')) {
       return
     }
-    setFees((prevFees) => prevFees.filter((f) => f.id !== feeId))
+    const updatedFees = fees.filter(f => f.id !== feeId)
+    if (!writeStoredList('educore.fees', updatedFees)) return
+    setFees(updatedFees)
     showToast('Fee structure deleted', 'info')
   }
 
@@ -681,7 +553,7 @@ export default function Fees() {
           {hasEditPermission && (
             activeTab === 'ledger' ? (
               <button className="btn btn-primary" onClick={openBatchGenerate}>
-                <i className="fa-solid fa-file-invoice-dollar"></i> Generate Monthly Invoices
+                <i className="fa-solid fa-file-invoice-dollar"></i> Generate Invoices
               </button>
             ) : (
               <button className="btn btn-primary" onClick={() => openEditFee(null)}>
@@ -1143,6 +1015,13 @@ export default function Fees() {
                   </select>
                 </div>
 
+                <PayerRelationships values={payerRelationships} onChange={values => {
+                  if (!requirePermission('edit') || !writeStoredList('educore.payerRelationships', values)) return false
+                  setPayerRelationships(values)
+                  if (!values.includes(paymentForm.relationship)) setPaymentForm({...paymentForm,relationship:values[0] || 'custom'})
+                  return true
+                }} />
+
                 {/* Custom Relationship input */}
                 {paymentForm.relationship === 'custom' && (
                   <div className="form-group" style={{ marginBottom: '14px' }}>
@@ -1224,8 +1103,8 @@ export default function Fees() {
                   {/* Custom Discount Input */}
                   {(paymentForm.discountType === 'customPercent' || paymentForm.discountType === 'customAmount') ? (
                     <div className="form-group">
-                      <label>{paymentForm.discountType === 'customPercent' ? 'Discount (%)' : 'Discount ($)'} <span className="req">*</span></label>
-                      <input aria-label="e.g. 15"
+                      <label>{paymentForm.discountType === 'customPercent' ? 'Discount (%)' : `Discount (${currencySymbol()})`} <span className="req">*</span></label>
+                      <input aria-label="Custom discount" step="0.01"
                         className="form-input"
                         type="number"
                         min="0"
@@ -1260,8 +1139,8 @@ export default function Fees() {
                   {/* Custom Tax Input */}
                   {(paymentForm.taxType === 'customPercent' || paymentForm.taxType === 'customAmount') ? (
                     <div className="form-group">
-                      <label>{paymentForm.taxType === 'customPercent' ? 'Tax Rate (%)' : 'Tax Amount ($)'} <span className="req">*</span></label>
-                      <input aria-label="e.g. 13"
+                      <label>{paymentForm.taxType === 'customPercent' ? 'Tax Rate (%)' : `Tax Amount (${currencySymbol()})`} <span className="req">*</span></label>
+                      <input aria-label="Custom tax" step="0.01"
                         className="form-input"
                         type="number"
                         min="0"
@@ -1276,27 +1155,29 @@ export default function Fees() {
                   )}
                 </div>
 
+                <p>Discount is applied before tax. Percentage tax uses the discounted subtotal.</p>
+                {calculatedTotals.error && <p role="alert">{calculatedTotals.error}</p>}
                 {/* Summary panel */}
                 <div style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '12px 16px', marginBottom: '16px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--t2)', marginBottom: '6px' }}>
                     <span>Subtotal:</span>
-                    <span>{currencySymbol()}{calculatedTotals.subtotal.toLocaleString()}.00</span>
+                    <span>{currencySymbol()}{calculatedTotals.subtotal.toFixed(2)}</span>
                   </div>
                   {calculatedTotals.discount > 0 && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--red)', marginBottom: '6px' }}>
                       <span>Discount Applied:</span>
-                      <span>-{currencySymbol()}{calculatedTotals.discount.toLocaleString()}.00</span>
+                      <span>-{currencySymbol()}{calculatedTotals.discount.toFixed(2)}</span>
                     </div>
                   )}
                   {calculatedTotals.tax > 0 && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--accent)', marginBottom: '6px' }}>
                       <span>Tax Applied:</span>
-                      <span>+{currencySymbol()}{calculatedTotals.tax.toLocaleString()}.00</span>
+                      <span>+{currencySymbol()}{calculatedTotals.tax.toFixed(2)}</span>
                     </div>
                   )}
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', fontWeight: 800, color: 'var(--t1)', borderTop: '1px solid var(--border)', paddingTop: '8px', marginTop: '4px' }}>
                     <span>Grand Total:</span>
-                    <span style={{ color: 'var(--green)' }}>{currencySymbol()}{calculatedTotals.grandTotal.toLocaleString()}.00</span>
+                    <span style={{ color: 'var(--green)' }}>{currencySymbol()}{calculatedTotals.grandTotal.toFixed(2)}</span>
                   </div>
                   <div style={{ fontSize: '11px', color: 'var(--t3)', marginTop: '8px', fontStyle: 'italic', borderTop: '1px dashed var(--border)', paddingTop: '6px' }}>
                     <strong>In Words:</strong> {calculatedTotals.words}
@@ -1315,127 +1196,7 @@ export default function Fees() {
         </Dialog>
       )}
 
-      {/* MODAL 2: BATCH MONTHLY RUN */}
-      {showBatchModal && (
-        <Dialog className="modal-overlay">
-          <div className="modal-panel role-form-modal" style={{ maxWidth: '460px' }}>
-            <div className="modal-header">
-              <div>
-                <h3 className="modal-title">
-                  <i className="fa-solid fa-file-invoice-dollar" style={{ color: 'var(--accent)', marginRight: '8px' }}></i>
-                  Batch Invoice Generator
-                </h3>
-                <p className="modal-sub">Generate monthly fee ledger entries for target classes.</p>
-              </div>
-              <button aria-label="Close" className="modal-close" onClick={() => setShowBatchModal(false)}>
-                <i className="fa-solid fa-xmark"></i>
-              </button>
-            </div>
-
-            <form onSubmit={handleRunBatchGenerate}>
-              <div className="modal-body">
-                {/* Billing Month */}
-                <div className="form-group" style={{ marginBottom: '14px' }}>
-                  <label>Billing Period Label <span className="req">*</span></label>
-                  <input aria-label="Billing Period Label"
-                    className="form-input"
-                    placeholder="e.g. July 2026"
-                    value={batchForm.billingMonth}
-                    onChange={(e) => setBatchForm({ ...batchForm, billingMonth: e.target.value })}
-                    required
-                  />
-                  <small style={{ color: 'var(--t3)', fontSize: '11px', marginTop: '4px', display: 'block' }}>Type target period, e.g. July 2026, August 2026.</small>
-                </div>
-
-                {/* Target Class Selection */}
-                <div className="form-group" style={{ marginBottom: '14px' }}>
-                  <label>Target Academic Class</label>
-                  <select aria-label="Target Academic Class" 
-                    className="form-select" 
-                    value={batchForm.targetClass} 
-                    onChange={(e) => {
-                      const val = e.target.value
-                      const activeForClass = fees.filter(f => f.status === 'active' && ['Monthly','One-Time'].includes(f.frequency) && (val === 'all' || (f.classIds || []).includes(Number(val)))).map(f => f.id)
-                      setBatchForm(prev => ({
-                        ...prev,
-                        targetClass: val,
-                        selectedFeeIds: activeForClass
-                      }))
-                    }}
-                  >
-                    <option value="all">All School Classes</option>
-                    {classes.map((c) => (
-                      <option key={c.id} value={c.id}>{c.name} - Section {c.section}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Dynamic Fee Checklist */}
-                <div className="form-group" style={{ marginBottom: '14px' }}>
-                  <label>Select Fees to Bill</label>
-                  <div 
-                    style={{ 
-                      background: 'var(--bg3)', 
-                      border: '1px solid var(--border)', 
-                      borderRadius: 'var(--radius-sm)', 
-                      padding: '10px', 
-                      maxHeight: '150px', 
-                      overflowY: 'auto' 
-                    }}
-                  >
-                    {availableFeesForBatch.length === 0 ? (
-                      <span style={{ fontSize: '12px', color: 'var(--red)', fontStyle: 'italic' }}>
-                        No active fees are mapped to this class selection.
-                      </span>
-                    ) : (
-                      availableFeesForBatch.map((f) => {
-                        const isChecked = batchForm.selectedFeeIds.includes(f.id)
-                        return (
-                          <label key={f.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 0', fontSize: '12.5px', cursor: 'pointer', color: 'var(--t1)' }}>
-                            <input aria-label="Select Fees to Bill"
-                              type="checkbox"
-                              checked={isChecked}
-                              onChange={() => {
-                                setBatchForm(prev => {
-                                  const list = prev.selectedFeeIds
-                                  const updated = list.includes(f.id) ? list.filter(id => id !== f.id) : [...list, f.id]
-                                  return { ...prev, selectedFeeIds: updated }
-                                })
-                              }}
-                              style={{ width: '15px', height: '15px', accentColor: 'var(--accent)' }}
-                            />
-                            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-                              <span>{f.name} ({f.frequency})</span>
-                              <strong style={{ color: 'var(--t2)', marginLeft: 'auto' }}>{currencySymbol()}{f.amount.toLocaleString()}</strong>
-                            </div>
-                          </label>
-                        )
-                      })
-                    )}
-                  </div>
-                </div>
-
-                {/* Consolidated billing run sum */}
-                {availableFeesForBatch.length > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg3)', padding: '12px 14px', borderRadius: 'var(--radius-xs)', border: '1px solid var(--border)', marginTop: '14px' }}>
-                    <span style={{ fontSize: '12px', color: 'var(--t2)' }}>Selected base fees (before eligibility and overrides):</span>
-                    <strong style={{ fontSize: '14.5px', color: 'var(--accent)', marginLeft: 'auto' }}>
-                      {currencySymbol()}{fees.filter(f => batchForm.selectedFeeIds.includes(f.id)).reduce((sum, f) => sum + f.amount, 0).toLocaleString()}
-                    </strong>
-                  </div>
-                )}
-              </div>
-
-              <div className="modal-footer">
-                <button type="button" className="btn btn-ghost" onClick={() => setShowBatchModal(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary" disabled={batchForm.selectedFeeIds.length === 0}>
-                  <i className="fa-solid fa-play"></i> Run Generator
-                </button>
-              </div>
-            </form>
-          </div>
-        </Dialog>
-      )}
+      {showBatchModal && <BillingGenerator students={students} classes={classes} fees={fees} onClose={() => setShowBatchModal(false)} onGenerate={handleRunBatchGenerate} />}
 
       {/* MODAL 3: INVOICE RECEIPT MODAL */}
       {activeReceipt && (
@@ -1642,7 +1403,7 @@ export default function Fees() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
                   <div className="form-group">
                     <label>Billing Amount ({currencySymbol()}) <span className="req">*</span></label>
-                    <input aria-label="Billing Amount ($)"
+                    <input aria-label="Billing Amount" min="0.01" step="0.01"
                       className="form-input"
                       type="number"
                       placeholder="e.g. 500"
@@ -1658,6 +1419,7 @@ export default function Fees() {
                       value={feeForm.frequency} 
                       onChange={(e) => setFeeForm({ ...feeForm, frequency: e.target.value })}
                     >
+                      <option value="Daily">Daily</option>
                       <option value="Monthly">Monthly</option>
                       <option value="Weekly">Weekly</option>
                       <option value="Yearly">Yearly</option>
@@ -1683,7 +1445,7 @@ export default function Fees() {
                 {/* Class Assignment Selector */}
                 <div className="form-group">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <label style={{ margin: 0 }}>Class Assignments <span className="req">*</span></label>
+                    <label style={{ margin: 0 }}>Class Assignments & optional unit rates <span className="req">*</span></label>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <button 
                         type="button" 
@@ -1739,6 +1501,8 @@ export default function Fees() {
                               style={{ width: '15px', height: '15px', accentColor: 'var(--accent)' }}
                             />
                             <span>{cls.name} - Section {cls.section} ({cls.classCode})</span>
+                            {isChecked && <input type="number" min="0" step="0.01" className="form-input" style={{maxWidth:130}} aria-label={`Rate for ${cls.name} ${cls.section}`} placeholder={`Base ${feeForm.amount || 0}`} value={feeForm.classRates?.[cls.id] ?? ''} onChange={event => setFeeForm({...feeForm,classRates:{...feeForm.classRates,[cls.id]:event.target.value}})} />}
+
                           </label>
                         )
                       })
