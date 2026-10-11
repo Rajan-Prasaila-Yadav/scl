@@ -15,7 +15,6 @@ export default function ClassFees({ classroom, fees, onSaved }) {
       <div><h3>Fees for {classroom.name} {classroom.section}</h3><p className="class-fees-count">{assigned.length} assigned fees <span aria-hidden="true">·</span> {assigned.filter(f => f.status === 'active').length} active</p></div>
       <div className="class-fees-actions">
         {canPerform('edit', 'Fees') && <Link className="btn btn-primary" href={`/fees?tab=configurator&classId=${classroom.id}&fromClass=${classroom.id}`}><i className="fa-solid fa-sliders" aria-hidden="true"/>Manage class fees</Link>}
-        <Link href={`/fees?tab=configurator&classId=${classroom.id}&fromClass=${classroom.id}`} className="btn btn-ghost"><i className="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"/>Fee Configurator</Link>
       </div>
     </div>
     <p className="class-fees-note"><i className="fa-solid fa-circle-info" aria-hidden="true"/><span>Rates are per student per billing unit. Student overrides can change the final invoice. Existing invoices keep their original amounts.</span></p>
