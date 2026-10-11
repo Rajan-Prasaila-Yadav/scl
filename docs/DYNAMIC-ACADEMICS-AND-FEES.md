@@ -86,3 +86,12 @@ Verification: source checks, 22 tests and production build passed. Tests cover 5
 Every successful partial or full collection automatically opens the printable Fee Invoice & Payment Summary. View invoice is available for unpaid, partial and paid invoices. It shows invoice total, cumulative collected, remaining balance, explicit payment status and installment receipt history. It updates the same invoice rather than generating a duplicate bill. Individual payment receipts remain available in Payment history.
 
 Verified in the browser: paying 2000 against 5150 automatically opened PARTIALLY PAID with balance 3150; settling the remaining 3150 automatically opened PAID IN FULL with balance zero. Source checks, all 22 tests and production build passed.
+
+## Individual invoice generation — 12 October 2026
+
+- Generate Invoices defaults to Individual student; search by name, admission number or roll number and select the exact student. Labels include admission number and class to distinguish repeated names/roll numbers.
+- Student links preselect that student. Class links preselect their class and retain Class batch mode; switching modes is explicit. Changing the class clears the student selection.
+- Monthly quantity 1, 2, 3 or more creates one combined invoice for that student, using class rates and student overrides. Existing partial/full collection and receipt workflows apply to this invoice.
+- Invalid, inactive or mismatched students cannot fall back to billing the class. Duplicate/overlapping charges retain existing skip rules.
+- The generator has a bounded panel, internally scrolling body, responsive fields and a fixed header/footer within the panel.
+- Verification: source check, all 24 regression tests and production build passed. On an isolated demo origin, browser testing saved one three-month invoice for Aarav (15000), confirmed batch mode skipped those charges, and visually checked panel containment and visible actions. No live deployment or backend changes.

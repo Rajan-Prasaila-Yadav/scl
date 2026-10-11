@@ -96,3 +96,23 @@ test('partial collections preserve terms, receipts and remaining balances', asyn
   const waived=recordInstallment(invoice,0,{grandTotal:0,discount:5000,tax:0},{id:3})
   assert.equal(waived.status,'paid')
 })
+
+test('individual multi-month billing selects only that student and preserves overrides',()=>{
+  const other={...student,id:2,feeOverrides:{10:80}}
+  const individual={...form,scope:'student',studentId:'2',quantity:3}
+  const preview=buildBillingPreview([student,other],[fee],individual)
+  assert.equal(preview.invoices.length,1)
+  assert.equal(preview.invoices[0].studentId,2)
+  assert.equal(preview.total,240)
+  assert.equal(preview.period.end,'2027-01-01T00:00')
+  const saved={...other,payments:[{feesBreakdown:preview.invoices[0].lines}]}
+  assert.equal(buildBillingPreview([student,saved],[fee],individual).invoices.length,0)
+  assert.equal(buildBillingPreview([student,other],[fee],{...form,scope:'class',studentId:''}).invoices.length,2)
+})
+
+test('individual billing rejects absent, unknown, inactive and wrong-class students',()=>{
+  for(const overrides of [{studentId:''},{studentId:'99'},{studentId:'1',classId:'99'}]) {
+    assert.throws(()=>buildBillingPreview([student],[fee],{...form,scope:'student',...overrides}),/Select an active student/)
+  }
+  assert.throws(()=>buildBillingPreview([{...student,status:'inactive'}],[fee],{...form,scope:'student',studentId:'1'}),/Select an active student/)
+})

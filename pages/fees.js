@@ -1248,7 +1248,7 @@ export default function Fees() {
         </Dialog>
       )}
 
-      {showBatchModal && <BillingGenerator students={students} classes={classes} fees={fees} onClose={() => setShowBatchModal(false)} onGenerate={handleRunBatchGenerate} />}
+      {showBatchModal && <BillingGenerator initialStudentId={router.query.studentId} initialClassId={router.query.collectionClass || router.query.classId || router.query.fromClass} students={students} classes={classes} fees={fees} onClose={() => setShowBatchModal(false)} onGenerate={handleRunBatchGenerate} />}
 
       {/* MODAL 3: INVOICE RECEIPT MODAL */}
       {activeReceipt && (

@@ -1814,3 +1814,27 @@ a { text-decoration: none; color: inherit; }
 .fee-class-editor { display:grid; gap:10px; padding:14px; margin-top:14px; background:var(--bg3); border:1px solid var(--border); border-radius:8px; }
 .fee-class-editor label, .fee-class-editor small { font-size:12px; color:var(--t2); line-height:1.5; }
 .fee-class-editor .btn { min-height:36px; justify-content:center; }
+
+/* Invoice generation: keep actions visible while long previews scroll inside. */
+.modal-panel.billing-generator { width: min(800px, 100%); max-width:800px; max-height:calc(100dvh - 32px); overflow:hidden; }
+.billing-generator > .modal-header { flex-shrink:0; gap:16px; }
+.billing-generator .modal-header p { margin-top:6px; color:var(--t2); font-size:13px; }
+.billing-generator > form { display:flex; flex-direction:column; min-height:0; overflow:hidden; }
+.billing-generator .modal-body { min-height:0; overscroll-behavior:contain; }
+.billing-generator-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+.billing-generator-grid label { display:flex; flex-direction:column; gap:8px; min-width:0; font-size:13px; font-weight:600; }
+.billing-generator-grid input,.billing-generator-grid select { width:100%; min-width:0; }
+.billing-generator-help { color:var(--t2); font-size:12px; line-height:1.65; margin:14px 0; }
+.billing-generator-fees { margin:18px 0; padding:12px; border:1px solid var(--border); border-radius:10px; min-width:0; }
+.billing-generator-fees legend { padding:0 8px; font-size:13px; font-weight:600; }
+.billing-generator-fees label { display:flex; align-items:center; gap:12px; padding:10px; font-size:14px; }
+.billing-generator-fees small { display:block; color:var(--t2); margin-top:4px; }
+.billing-generator-preview { padding:16px; background:var(--bg3); border:1px solid var(--border); border-radius:10px; overflow-wrap:anywhere; }
+.billing-generator-preview-row { display:grid; gap:6px; padding:14px 0; border-top:1px solid var(--border); font-size:13px; }
+.billing-generator .modal-footer { gap:12px; background:var(--bg2); }
+@media(max-width:600px) {
+  .billing-generator-grid { grid-template-columns:1fr; gap:14px; }
+  .billing-generator .modal-header,.billing-generator .modal-body,.billing-generator .modal-footer { padding:14px; }
+  .billing-generator .modal-footer { flex-wrap:wrap; }
+  .billing-generator .modal-footer .btn { flex:1; justify-content:center; }
+}
