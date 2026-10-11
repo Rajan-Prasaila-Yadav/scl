@@ -1,3 +1,4 @@
+import { invoiceAmount } from '../lib/feeLedger'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import FeeClassRateEditor from '../components/FeeClassRateEditor'
@@ -229,23 +230,27 @@ export default function Fees() {
           className,
           defaultGuardian: guardian,
           // Calculate dynamic invoice amount or fallback
-          invoiceAmount: p.amount ?? p.amountPaid ?? 4500
+          invoiceAmount: invoiceAmount(p)
         })
       })
     })
     return list
   }, [students, classes])
 
+  const scopedTransactions = allTransactions.filter(t =>
+    (!router.query.studentId || String(t.studentId) === router.query.studentId) &&
+    (!router.query.collectionClass || String(t.classId) === router.query.collectionClass))
+  const originStudent = students.find(s => String(s.id) === router.query.fromStudent)
   // Overview metrics
   const stats = useMemo(() => {
-    const paidList = allTransactions.filter((t) => t.status === 'paid')
-    const unpaidList = allTransactions.filter((t) => t.status === 'pending' || t.status === 'overdue')
+    const paidList = scopedTransactions.filter((t) => t.status === 'paid')
+    const unpaidList = scopedTransactions.filter((t) => t.status === 'pending' || t.status === 'overdue')
 
     const totalCollected = paidList.reduce((sum, t) => sum + (t.amountPaid || 0), 0)
     // Calculate dynamic total outstanding based on actual invoice values
-    const totalOutstanding = unpaidList.reduce((sum, t) => sum + (t.invoiceAmount || 4500), 0)
+    const totalOutstanding = unpaidList.reduce((sum, t) => sum + (t.invoiceAmount ?? 0), 0)
 
-    const totalInvoices = allTransactions.length
+    const totalInvoices = scopedTransactions.length
     const collectionRate = totalInvoices > 0 
       ? Math.round((paidList.length / totalInvoices) * 100) 
       : 0
@@ -256,12 +261,13 @@ export default function Fees() {
       collectionRate,
       pendingCount: unpaidList.length
     }
-  }, [allTransactions])
+  }, [scopedTransactions])
 
   // Filtering ledger entries
   const filteredTransactions = useMemo(() => {
     const query = searchQuery.toLowerCase().trim()
-    return allTransactions.filter((t) => {
+    return scopedTransactions.filter((t) => {
+      if (router.query.invoice && t.invoiceNo !== router.query.invoice) return false
       // 1. Status Filter
       if (statusFilter !== 'all' && t.status !== statusFilter) return false
       // 2. Class Filter
@@ -283,7 +289,7 @@ export default function Fees() {
       if (sortBy === 'studentName') return a.studentName.localeCompare(b.studentName)
       return (b.id || 0) - (a.id || 0)
     })
-  }, [allTransactions, searchQuery, statusFilter, classFilter, sortBy])
+  }, [router.query.invoice, scopedTransactions, searchQuery, statusFilter, classFilter, sortBy])
 
   // Real-time calculations for recording payment
   const calculatedTotals = useMemo(() => {
@@ -640,6 +646,13 @@ export default function Fees() {
         </button>
       </div>
 
+      {activeTab === 'ledger' && (originStudent || originClass || router.query.studentId || router.query.collectionClass) && <div className="fee-config-toolbar">
+        <h3>{originStudent ? `Collections for ${originStudent.name}` : originClass ? `Collections for ${originClass.name} ${originClass.section}` : 'Filtered student collections'}</h3>
+        {originStudent && <Link className="btn btn-ghost" href={`/students?studentId=${originStudent.id}`}>Back to {originStudent.name}</Link>}
+        {!originStudent && originClass && <Link className="btn btn-ghost" href={`/classes?classId=${originClass.id}&tab=fees`}>Back to {originClass.name} {originClass.section}</Link>}
+        {router.query.invoice && <button className="btn btn-ghost" onClick={()=>{const query={...router.query};delete query.invoice;router.push({pathname:'/fees',query},undefined,{shallow:true})}}>Show all invoices in this context</button>}
+        <Link className="btn btn-ghost" href="/fees">All student collections</Link>
+      </div>}
       {activeTab === 'ledger' ? (
         <>
           {/* METRICS DASHBOARD PANELS */}
@@ -764,7 +777,7 @@ export default function Fees() {
                     <th>Student Name</th>
                     <th>Academic Class</th>
                     <th>Billing Period</th>
-                    <th>Fee Amount</th>
+                    <th>Invoice subtotal / collected</th>
                     <th>Payment Date</th>
                     <th>Collected From</th>
                     <th>Payment Status</th>
@@ -795,7 +808,7 @@ export default function Fees() {
                             <span style={{ fontWeight: 600 }}>{t.month}</span>
                           </td>
                           <td>
-                            <strong style={{ color: 'var(--t1)' }}>{currencySymbol()}{t.invoiceAmount.toLocaleString()}</strong>
+                            <strong style={{ color: 'var(--t1)' }}>{currencySymbol()}{t.invoiceAmount.toLocaleString()}</strong>{t.status === 'paid' && <div style={{fontSize:11,color:'var(--green)'}}>Collected: {currencySymbol()}{Number(t.amountPaid || 0).toFixed(2)}</div>}
                           </td>
                           <td>
                             <span style={{ fontSize: '11.5px', fontFamily: 'monospace' }}>{t.paymentDate}</span>

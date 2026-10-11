@@ -1,3 +1,4 @@
+import FeeCollectionLedger from '../components/FeeCollectionLedger'
 import { useRouter } from 'next/router'
 import ClassFees, { assignedToClass } from '../components/ClassFees'
 import { INITIAL_FEES } from '../lib/feeData'
@@ -1244,7 +1245,7 @@ export default function Classes() {
               </button>
             </div>
 
-            {detailTab === 'fees' && <ClassFees key={selectedClass.id} classroom={selectedClass} fees={fees} onSaved={updated => {setFees(updated);showToast('Class fees saved', 'success')}} />}
+            {detailTab === 'fees' && <><ClassFees key={selectedClass.id} classroom={selectedClass} fees={fees} onSaved={updated => {setFees(updated);showToast('Class fees saved', 'success')}} /><FeeCollectionLedger students={allStudents} classId={selectedClass.id} /></>}
 
             {/* TAB CONTENT: OVERVIEW */}
             {detailTab === 'overview' && (

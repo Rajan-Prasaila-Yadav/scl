@@ -1,3 +1,4 @@
+import { effectiveFeeRate } from '../lib/feeLedger'
 import React from 'react'
 import Link from 'next/link'
 import { currencySymbol } from '../lib/schoolConfig'
@@ -5,7 +6,7 @@ import { canPerform } from '../lib/permissions'
 import { money } from '../lib/billing'
 
 export const assignedToClass = (fee, classId) => (fee.classIds || []).some(id => String(id) === String(classId))
-const classRate = (fee, id) => fee.classRates?.[id] !== undefined && fee.classRates[id] !== '' ? Number(fee.classRates[id]) : Number(fee.amount)
+const classRate = effectiveFeeRate
 
 export default function ClassFees({ classroom, fees, onSaved }) {
   const assigned = fees.filter(f => assignedToClass(f, classroom.id))

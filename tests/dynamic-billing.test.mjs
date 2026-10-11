@@ -65,3 +65,14 @@ test('receipt words preserve decimal amounts', async () => {
   assert.equal(numberToWords(0.99), 'Zero rupees and ninety nine paisa only')
   assert.equal(numberToWords(300), 'Three hundred rupees only')
 })
+
+
+test('shared ledger preserves zero invoices and uses class then student overrides', async () => {
+  const { invoiceRows, ledgerTotals, effectiveFeeRate } = await import('../lib/feeLedger.js')
+  const rows = invoiceRows([{id:1,name:'Demo',classId:2,payments:[{id:1,amount:0,status:'pending'},{id:2,amount:300,amountPaid:268.05,status:'paid'},{id:3,amount:150,status:'overdue'}]}])
+  assert.equal(rows[0].invoiceAmount,0)
+  assert.deepEqual(ledgerTotals(rows),{collected:268.05,outstanding:150})
+  assert.equal(effectiveFeeRate(fee,2),150)
+  assert.equal(effectiveFeeRate(fee,2,{10:0}),0)
+  assert.equal(effectiveFeeRate(fee,2,{10:''}),150)
+})
