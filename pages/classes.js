@@ -1,3 +1,4 @@
+import { useRouter } from 'next/router'
 import ClassFees, { assignedToClass } from '../components/ClassFees'
 import { INITIAL_FEES } from '../lib/feeData'
 import { validateClassCapacity } from '../lib/registryValidation'
@@ -35,6 +36,9 @@ const emptyForm = {
 }
 
 export default function Classes() {
+  const router = useRouter()
+
+
   const [fees, setFees] = useState([])
   const [classes, setClasses] = useState(INITIAL_CLASSES)
   const [subjects, setSubjects] = useState(INITIAL_SUBJECTS)
@@ -58,6 +62,13 @@ export default function Classes() {
   const [selectedClassId, setSelectedClassId] = useState(null)
   const [toast, setToast] = useState(null)
   const [hydrated, setHydrated] = useState(false)
+  useEffect(() => {
+    if (hydrated && router.isReady && router.query.classId) {
+      setSelectedClassId(Number(router.query.classId))
+      setViewMode('detail')
+      setDetailTab(router.query.tab === 'fees' ? 'fees' : 'overview')
+    }
+  }, [hydrated, router.isReady, router.query.classId, router.query.tab])
   const [viewMode, setViewMode] = useState('list') // 'list' | 'create' | 'edit' | 'detail'
   const [detailTab, setDetailTab] = useState('overview') // 'overview' | 'subjects' | 'students' | 'teachers'
 

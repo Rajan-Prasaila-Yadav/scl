@@ -1,3 +1,6 @@
+import { useRouter } from 'next/router'
+import Link from 'next/link'
+import FeeClassRateEditor from '../components/FeeClassRateEditor'
 import { INITIAL_FEES } from '../lib/feeData'
 import { getRaw } from '../lib/storage'
 import { currencySymbol } from '../lib/schoolConfig'
@@ -74,6 +77,38 @@ export default function Fees() {
   const [toast, setToast] = useState(null)
 
   // Layout Tab State: 'ledger' or 'configurator'
+  const router = useRouter()
+  const [configSearch, setConfigSearch] = useState('')
+  const [configStatus, setConfigStatus] = useState('all')
+  const [configFrequency, setConfigFrequency] = useState('all')
+  const [configAssignment, setConfigAssignment] = useState('assigned')
+  const [configSort, setConfigSort] = useState('name')
+  const configClassId = typeof router.query.classId === 'string' ? router.query.classId : 'all'
+  const configClass = classes.find(c => String(c.id) === configClassId)
+  const originClass = classes.find(c => String(c.id) === router.query.fromClass)
+  useEffect(() => {
+    if (router.isReady) setActiveTab(router.query.tab === 'configurator' ? 'configurator' : 'ledger')
+  }, [router.isReady, router.query.tab])
+  const changeTab = tab => router.push({pathname:'/fees',query:{...router.query,tab}}, undefined, {shallow:true})
+  const effectiveRate = fee => Number(configClass && fee.classRates?.[configClass.id] !== undefined && fee.classRates[configClass.id] !== '' ? fee.classRates[configClass.id] : fee.amount)
+  const configFees = fees.filter(fee => {
+    const assigned = (fee.classIds || []).some(id => String(id) === configClassId)
+    const classNames = classes.filter(c => (fee.classIds || []).includes(c.id)).map(c => `${c.name} ${c.section}`).join(' ')
+    return (!configClass || configAssignment === 'all' || (configAssignment === 'assigned' ? assigned : !assigned)) &&
+      (configStatus === 'all' || fee.status === configStatus) && (configFrequency === 'all' || fee.frequency === configFrequency) &&
+      `${fee.name} ${fee.description || ''} ${classNames}`.toLowerCase().includes(configSearch.trim().toLowerCase())
+  }).sort((a,b) => configSort === 'low' ? effectiveRate(a)-effectiveRate(b) : configSort === 'high' ? effectiveRate(b)-effectiveRate(a) : a.name.localeCompare(b.name))
+  const saveClassRate = (fee, assigned, rate) => {
+    if (!configClass || !requirePermission('edit','Fees')) return false
+    const classIds = (fee.classIds || []).filter(id => String(id) !== String(configClass.id))
+    const classRates = {...fee.classRates}
+    delete classRates[configClass.id]
+    if (assigned && rate !== '') classRates[configClass.id] = Number(rate)
+    const updated = fees.map(f => f.id === fee.id ? {...f, classIds:assigned ? [...classIds,configClass.id] : classIds, classRates} : f)
+    if (!writeStoredList('educore.fees',updated)) return false
+    setFees(updated)
+    return true
+  }
   const [activeTab, setActiveTab] = useState('ledger')
 
   // Filters State
@@ -455,7 +490,7 @@ export default function Fees() {
         amount: '',
         frequency: 'Monthly',
         description: '',
-        classIds: [],
+        classIds: configClass ? [configClass.id] : [],
         classRates: {},
         status: 'active'
       })
@@ -563,7 +598,7 @@ export default function Fees() {
       <div className="settings-tabs-nav no-print" style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border)', marginBottom: '25px', paddingBottom: '2px' }}>
         <button 
           className={`settings-tab-btn ${activeTab === 'ledger' ? 'active' : ''}`}
-          onClick={() => setActiveTab('ledger')}
+          onClick={() => changeTab('ledger')}
           style={{
             padding: '10px 18px',
             background: 'none',
@@ -584,7 +619,7 @@ export default function Fees() {
         </button>
         <button 
           className={`settings-tab-btn ${activeTab === 'configurator' ? 'active' : ''}`}
-          onClick={() => setActiveTab('configurator')}
+          onClick={() => changeTab('configurator')}
           style={{
             padding: '10px 18px',
             background: 'none',
@@ -817,9 +852,22 @@ export default function Fees() {
         </>
       ) : (
         <div style={{ animation: 'fadeIn 0.25s ease' }}>
+          <div className="fee-config-toolbar">
+            <h2>{configClass ? `Fee configuration: ${configClass.name} ${configClass.section}` : 'Fee configuration: all classes'}</h2>
+            {originClass && <Link className="btn btn-ghost" href={`/classes?classId=${originClass.id}&tab=fees`}>Back to {originClass.name} {originClass.section}</Link>}
+            {configClassId !== 'all' && !configClass && <p role="status">This class no longer exists. Showing all fees.</p>}
+            <div className="fee-config-filters">
+              <input className="form-input" aria-label="Search fee configurations" placeholder="Search fees or assigned classes…" value={configSearch} onChange={e=>setConfigSearch(e.target.value)}/>
+              <select className="form-select" aria-label="Configure class" value={configClass?.id || 'all'} onChange={e=>router.push({pathname:'/fees',query:{...router.query,tab:'configurator',classId:e.target.value}},undefined,{shallow:true})}><option value="all">All classes</option>{classes.map(c=><option key={c.id} value={c.id}>{c.name} {c.section}</option>)}</select>
+              <select className="form-select" aria-label="Fee assignment filter" disabled={!configClass} value={configAssignment} onChange={e=>setConfigAssignment(e.target.value)}><option value="assigned">Assigned fees</option><option value="unassigned">Unassigned fees</option><option value="all">All fee structures</option></select>
+              <select className="form-select" aria-label="Fee status filter" value={configStatus} onChange={e=>setConfigStatus(e.target.value)}><option value="all">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
+              <select className="form-select" aria-label="Fee frequency filter" value={configFrequency} onChange={e=>setConfigFrequency(e.target.value)}><option value="all">All frequencies</option>{BILLING_FREQUENCIES.map(f=><option key={f}>{f}</option>)}</select>
+              <select className="form-select" aria-label="Sort fee configurations" value={configSort} onChange={e=>setConfigSort(e.target.value)}><option value="name">Name A–Z</option><option value="low">Rate: low to high</option><option value="high">Rate: high to low</option></select>
+            </div><p>{configFees.length} matching fee structures. {configClass ? 'Displayed rates use this class’s overrides.' : 'Displayed headline rates are base rates; class rates appear below.'}</p>
+          </div>
           {/* FEE CONFIGURATOR STRUCTURES GRID */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px', marginBottom: '25px' }}>
-            {fees.map((fee) => {
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))', gap: '20px', marginBottom: '25px' }}>
+            {configFees.map((fee) => {
               // Find matching class names
               const mappedClasses = classes.filter((c) => (fee.classIds || []).includes(c.id))
 
@@ -847,7 +895,7 @@ export default function Fees() {
                         <h3 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--t1)', margin: 0 }}>{fee.name}</h3>
                       </div>
                       <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--accent)' }}>
-                        {currencySymbol()}{fee.amount.toLocaleString()}
+                        {currencySymbol()}{effectiveRate(fee).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
                       </div>
                     </div>
 
@@ -881,7 +929,7 @@ export default function Fees() {
                                 fontWeight: 600
                               }}
                             >
-                              {c.name} - {c.section}
+                              {c.name} - {c.section}: {currencySymbol()}{Number(c.id && fee.classRates?.[c.id] !== undefined && fee.classRates[c.id] !== '' ? fee.classRates[c.id] : fee.amount).toFixed(2)}
                             </span>
                           ))
                         )}
@@ -889,6 +937,8 @@ export default function Fees() {
                     </div>
                   </div>
 
+                  <p className="class-fees-count">Status: {fee.status}</p>
+                  {configClass && hasEditPermission && <FeeClassRateEditor key={`${fee.id}-${configClass.id}-${JSON.stringify(fee.classIds)}-${JSON.stringify(fee.classRates)}`} fee={fee} classroom={configClass} onSave={(assigned,rate)=>saveClassRate(fee,assigned,rate)}/>}
                   {/* Actions footer */}
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', borderTop: '1px solid var(--border)', paddingTop: '12px', marginTop: '10px' }}>
                     {hasEditPermission && (
@@ -914,6 +964,7 @@ export default function Fees() {
               )
             })}
 
+            {!configFees.length && <p role="status">No fees match these filters. Change filters or create a fee structure.</p>}
             {/* QUICK CREATE CARD */}
             {hasEditPermission && (
               <div role="button" tabIndex={0} onKeyDown={e => { if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); e.currentTarget.click() } }} 

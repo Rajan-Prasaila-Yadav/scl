@@ -1806,3 +1806,11 @@ a { text-decoration: none; color: inherit; }
   .class-fees-total-grid { grid-template-columns:1fr; }
   .class-fees-modal { padding:18px; }
 }
+
+.fee-config-toolbar { padding:20px; margin-bottom:20px; background:var(--bg2); border:1px solid var(--border); border-radius:12px; }
+.fee-config-toolbar h2 { font-size:18px; margin-bottom:12px; }
+.fee-config-toolbar p { color:var(--t2); font-size:12px; margin-top:14px; }
+.fee-config-filters { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin-top:16px; }
+.fee-class-editor { display:grid; gap:10px; padding:14px; margin-top:14px; background:var(--bg3); border:1px solid var(--border); border-radius:8px; }
+.fee-class-editor label, .fee-class-editor small { font-size:12px; color:var(--t2); line-height:1.5; }
+.fee-class-editor .btn { min-height:36px; justify-content:center; }

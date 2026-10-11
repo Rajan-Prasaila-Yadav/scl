@@ -49,6 +49,14 @@ Additional browser checks verified relationship rename to Grandparent while the 
 
 The Classes list shows an assigned fee count for each class. Click that count, or open a class and select Fees, to see fee names, frequencies, base rates, class rates and active/inactive status. Active totals are grouped by frequency rather than combined across incompatible billing units.
 
-Manage class fees assigns/unassigns existing fee structures and edits rates for this class only. A blank rate restores the shared base rate; zero is allowed. Other class assignments/rates and previously issued invoices are preserved. Fee editing requires the Fees edit permission in the role preview. Create new fee definitions or change shared names/frequencies in Fee Configurator, linked from this tab.
+Manage class fees opens the class-scoped Fee Configurator, where inline controls assign/unassign existing fee structures and edit rates for this class only. A blank rate restores the shared base rate; zero is allowed. Other class assignments/rates and previously issued invoices are preserved. Fee editing requires the Fees edit permission in the role preview. Create new fee definitions or change shared names/frequencies in Fee Configurator, linked from this tab.
 
 Verification: source checks, all 20 tests and production build passed. Browser testing saved Class 8 tuition at 4200.50, confirmed it after reload, and confirmed Class 9 remained at the 4500 base rate. No browser console errors were observed during these checks.
+
+## Context-aware Fee Configurator
+
+Manage class fees now navigates to `/fees?tab=configurator&classId=ID&fromClass=ID`; the former class popup has been removed. The selected class and originating class survive refresh. A return link opens the originating class Fees tab. Direct `/fees` navigation opens the ledger without a class scope; the configurator then shows all classes.
+
+The configurator supports text search across fee names/descriptions and assigned class names, class selection, assigned/unassigned/all structures, status, frequency, and sorting by name or effective rate. Select a class to edit its assignment and rate inline, then Save class fee. Blank restores the base rate. Unassigned fees are available through the assignment filter. Each fee card lists all assigned classes with their rates. Shared Edit Config still edits the fee definition; its dialog is separate from class-specific inline changes. New fee creation preselects the current class.
+
+Only navigation/class context is kept in the URL; search, status, frequency and sorting are session UI state and reset on reload. Existing invoices retain their snapshots. Browser verification covered class navigation, search, monthly filtering, descending effective-rate sorting, saving 4300 for Class 10 tuition, reload, return to Class 10 showing that rate, and direct entry showing the ledger and all-class configuration. Source checks, 20 tests and production build passed.
