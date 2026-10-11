@@ -80,3 +80,9 @@ Each installment stores a unique receipt number, amount, payer name/relationship
 Daily Finance collections use each installment date and amount, rather than assigning the cumulative amount to the last payment date. Closed accounting-day checks protect individual receipt entries. Legacy paid invoices remain readable without creating synthetic installment records.
 
 Verification: source checks, 22 tests and production build passed. Tests cover 5000 split into 2000 and 3000, overpayment/zero/decimal rejection, fixed terms, receipt retention, zero-total waivers and already-paid rejection. Browser verification split a demo 5150 invoice into 2000 and 3150, confirmed partial balance after refresh and disabled term controls, then confirmed paid status with two distinct receipt entries and zero balance.
+
+## Invoice after each collection
+
+Every successful partial or full collection automatically opens the printable Fee Invoice & Payment Summary. View invoice is available for unpaid, partial and paid invoices. It shows invoice total, cumulative collected, remaining balance, explicit payment status and installment receipt history. It updates the same invoice rather than generating a duplicate bill. Individual payment receipts remain available in Payment history.
+
+Verified in the browser: paying 2000 against 5150 automatically opened PARTIALLY PAID with balance 3150; settling the remaining 3150 automatically opened PAID IN FULL with balance zero. Source checks, all 22 tests and production build passed.

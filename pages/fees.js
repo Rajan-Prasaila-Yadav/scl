@@ -1,4 +1,4 @@
-import { invoiceAmount, invoiceBalance, recordInstallment } from '../lib/feeLedger'
+import { invoiceAmount, invoiceBalance, invoiceDue, recordInstallment } from '../lib/feeLedger'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import FeeClassRateEditor from '../components/FeeClassRateEditor'
@@ -429,6 +429,7 @@ export default function Fees() {
     setStudents(updatedStudents)
 
     setShowPaymentModal(false)
+    setActiveReceipt({...selectedTransaction, ...updatedInvoice})
     showToast('Payment recorded successfully', 'success')
   }
 
@@ -825,11 +826,10 @@ export default function Fees() {
                           <td>
                             {t.collections?.length > 0 && <details><summary>Payment history ({t.collections.length})</summary>{t.collections.map(entry=><div key={entry.id} style={{padding:8}}><p>{entry.receiptNo} · {entry.paymentDate}</p><p>{entry.paidBy} ({entry.payerRelation}) · {entry.paymentMode} {entry.onlineApp}</p><p>Paid: {currencySymbol()}{entry.amountPaid.toFixed(2)} · Remaining: {currencySymbol()}{entry.balanceAfter.toFixed(2)}</p><button className="btn btn-ghost btn-xs" onClick={()=>printToPDF(`Payment receipt ${entry.receiptNo}`,['Invoice','Student','Date','Payer','Relationship','Method','Paid','Balance after'],[[t.invoiceNo,t.studentName,entry.paymentDate,entry.paidBy,entry.payerRelation,`${entry.paymentMode} ${entry.onlineApp || ''}`,entry.amountPaid.toFixed(2),entry.balanceAfter.toFixed(2)]])}>Print payment receipt</button></div>)}</details>}
                             <div className="roles-actions" style={{ justifyContent: 'flex-end' }}>
-                              {t.status === 'paid' ? (
-                                <button className="btn btn-ghost btn-xs" title="Print Invoice Slip" onClick={() => openPrintReceipt(t)}>
-                                  <i className="fa-solid fa-print"></i> Print Receipt
-                                </button>
-                              ) : (
+                              <button className="btn btn-ghost btn-xs" title="View or print invoice" onClick={() => openPrintReceipt(t)}>
+                                <i className="fa-solid fa-print"></i> View invoice
+                              </button>
+                              {t.status !== 'paid' && (
                                 <button 
                                   className="btn btn-primary btn-xs" 
                                   title="Record Collection" 
@@ -1258,9 +1258,9 @@ export default function Fees() {
               <div>
                 <h3 className="modal-title">
                   <i className="fa-solid fa-file-pdf" style={{ color: 'var(--green)', marginRight: '8px' }}></i>
-                  Tuition Fee Receipt
+                  Fee Invoice & Payment Summary
                 </h3>
-                <p className="modal-sub">Official billing transaction slip overview.</p>
+                <p className="modal-sub">Invoice balance and payment history.</p>
               </div>
               <button aria-label="Close" className="modal-close" onClick={() => setActiveReceipt(null)}>
                 <i className="fa-solid fa-xmark"></i>
@@ -1280,15 +1280,15 @@ export default function Fees() {
 
                   {/* Receipt Tag */}
                   <div className="bill-receipt-tag-container">
-                    <span className="bill-receipt-tag">Official Fees Receipt</span>
+                    <span className="bill-receipt-tag">Fee Invoice / Payment Summary</span>
                   </div>
 
                   {/* Metadata Grid */}
                   <table className="bill-meta-table">
                     <tbody>
                       <tr>
-                        <td><strong>Receipt No:</strong> <span style={{ fontFamily: 'monospace', fontSize: '11.5px' }}>{activeReceipt.invoiceNo}</span></td>
-                        <td><strong>Date:</strong> {activeReceipt.paymentDate !== '—' ? activeReceipt.paymentDate.split(' ')[0] : '—'}</td>
+                        <td><strong>Invoice No:</strong> <span style={{ fontFamily: 'monospace', fontSize: '11.5px' }}>{activeReceipt.invoiceNo}</span></td>
+                        <td><strong>Date:</strong> {activeReceipt.paymentDate && activeReceipt.paymentDate !== '—' ? activeReceipt.paymentDate.split(' ')[0] : '—'}</td>
                       </tr>
                       <tr>
                         <td><strong>Student Name:</strong> {activeReceipt.studentName}</td>
@@ -1346,8 +1346,10 @@ export default function Fees() {
                         const subtotal = activeReceipt.amount !== undefined ? activeReceipt.amount : (activeReceipt.amountPaid || 0)
                         const discount = activeReceipt.discountAmount || 0
                         const tax = activeReceipt.taxAmount || 0
-                        const grandTotal = activeReceipt.amountPaid || 0
-                        const words = activeReceipt.inWords || numberToWords(grandTotal)
+                        const grandTotal = invoiceDue(activeReceipt)
+                        const collected = Number(activeReceipt.amountPaid || 0)
+                        const balance = invoiceBalance(activeReceipt)
+                        const words = numberToWords(grandTotal)
 
                         return (
                           <>
@@ -1372,9 +1374,11 @@ export default function Fees() {
                             )}
                             <tr className="total-row" style={{ borderTop: '2px solid #111111' }}>
                               <td colSpan={4} style={{ border: 'none' }}></td>
-                              <td style={{ textAlign: 'right', fontWeight: '800', fontSize: '12px' }}>Net Total:</td>
+                              <td style={{ textAlign: 'right', fontWeight: '800', fontSize: '12px' }}>Invoice Total:</td>
                               <td style={{ textAlign: 'right', fontWeight: '800', fontSize: '12px', color: 'var(--green)' }}>{currencySymbol()}{grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                             </tr>
+                            <tr><td colSpan={5} style={{textAlign:'right'}}>Total Collected:</td><td style={{textAlign:'right'}}>{currencySymbol()}{collected.toFixed(2)}</td></tr>
+                            <tr><td colSpan={5} style={{textAlign:'right',fontWeight:800}}>Remaining Balance:</td><td style={{textAlign:'right',fontWeight:800}}>{currencySymbol()}{balance.toFixed(2)}</td></tr>
                             <tr>
                               <td colSpan={6} style={{ padding: 0, border: 'none' }}>
                                 <div className="bill-words-box">
@@ -1388,6 +1392,8 @@ export default function Fees() {
                     </tbody>
                   </table>
 
+                  <div style={{margin:'16px 0',fontWeight:800}}>Payment status: {activeReceipt.status === 'paid' ? 'PAID IN FULL' : activeReceipt.status === 'partial' ? 'PARTIALLY PAID' : 'UNPAID'}</div>
+                  {activeReceipt.collections?.length > 0 && <div><h4>Payment history</h4><table className="bill-table"><thead><tr><th>Receipt</th><th>Date</th><th>Payer / relation</th><th>Method</th><th>Paid</th><th>Balance after</th></tr></thead><tbody>{activeReceipt.collections.map(entry=><tr key={entry.id}><td>{entry.receiptNo}</td><td>{entry.paymentDate}</td><td>{entry.paidBy} ({entry.payerRelation})</td><td>{entry.paymentMode} {entry.onlineApp}</td><td>{currencySymbol()}{entry.amountPaid.toFixed(2)}</td><td>{currencySymbol()}{entry.balanceAfter.toFixed(2)}</td></tr>)}</tbody></table></div>}
                   {/* Signatures */}
                   <div className="bill-signatures-container">
                     <div className="bill-signature-block">
