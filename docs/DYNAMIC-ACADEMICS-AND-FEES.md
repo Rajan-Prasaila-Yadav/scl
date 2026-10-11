@@ -31,7 +31,7 @@ Open Pay Fee on an unpaid invoice. Enter the actual payer name and a specific re
 
 Discount and tax accept a percentage or a fixed amount, including decimals. Discount applies first; percentage tax uses the discounted subtotal. Example: 300 minus 12.5% discount (37.50) plus fixed tax 5.55 gives 268.05. Discounts cannot exceed the subtotal; percentages must be 0–100. Totals are rounded to two decimals. Receipt words include paisa. Tax choices are configurable demo calculations, not a determination of applicable tax law.
 
-Collection settles the full calculated total. Partial payments, refunds, credit notes, automated collections and gateway verification are not implemented.
+Collection supports installments against the calculated invoice total. Refunds, credit notes, automated collections and gateway verification are not implemented.
 
 ## Persistence and backend migration
 
@@ -67,6 +67,16 @@ Class details (Fees tab) and student details (Fees & Payments tab) now show save
 
 Student details also show current class and student rates, using the same rate precedence as billing: student override, class override, then base rate. A blank override inherits; zero remains zero. Issued invoice amounts are snapshots and can differ from current configured rates. The invoice subtotal remains visible separately from the discounted/taxed collected total. There is no fabricated 4500 fallback for zero/unspecified invoice amounts.
 
-Scope is browser-local records on the same origin. Returning to a page or reloading reads the saved values. Other already-open tabs may need refresh; cross-device real-time synchronization needs the backend. Generation remains the explicit Fee Management billing workflow; collection does not silently create another invoice. Partial payments and refunds remain unimplemented.
+Scope is browser-local records on the same origin. Returning to a page or reloading reads the saved values. Other already-open tabs may need refresh; cross-device real-time synchronization needs the backend. Generation remains the explicit Fee Management billing workflow; collection does not silently create another invoice. Partial payments are now implemented as described below; refunds remain unimplemented.
 
 Verification: source checks, 21 tests, production build. Browser testing collected demo invoice SLIP-2026-215 with 10% discount, then verified subtotal 5150, collected 4635 and paid status in Fee Management, student details and class details. No real payment was processed.
+
+## Partial payments — 12 October 2026
+
+Collect now accepts a positive amount up to the remaining balance, with two decimal places. Blank settles the balance. A fully waived zero-total invoice can be settled with zero. First collection freezes the invoice total, discount and tax. Subsequent collections cannot change those terms. Invoice states are unpaid (pending/overdue), partial, and paid.
+
+Each installment stores a unique receipt number, amount, payer name/relationship, date, method, collector and balance after payment. Expand Payment history in Fee Management to inspect or print each payment receipt. The existing full-invoice print action remains an aggregate invoice summary; individual installment receipts are available separately. Class/student ledgers display cumulative collected and remaining amounts. Overpayment, invalid decimals and collection against an already-paid invoice are rejected.
+
+Daily Finance collections use each installment date and amount, rather than assigning the cumulative amount to the last payment date. Closed accounting-day checks protect individual receipt entries. Legacy paid invoices remain readable without creating synthetic installment records.
+
+Verification: source checks, 22 tests and production build passed. Tests cover 5000 split into 2000 and 3000, overpayment/zero/decimal rejection, fixed terms, receipt retention, zero-total waivers and already-paid rejection. Browser verification split a demo 5150 invoice into 2000 and 3150, confirmed partial balance after refresh and disabled term controls, then confirmed paid status with two distinct receipt entries and zero balance.

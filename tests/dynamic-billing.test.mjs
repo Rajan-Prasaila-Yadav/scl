@@ -76,3 +76,23 @@ test('shared ledger preserves zero invoices and uses class then student override
   assert.equal(effectiveFeeRate(fee,2,{10:0}),0)
   assert.equal(effectiveFeeRate(fee,2,{10:''}),150)
 })
+
+
+test('partial collections preserve terms, receipts and remaining balances', async () => {
+  const {recordInstallment, invoiceBalance, collectionEntries, ledgerTotals} = await import('../lib/feeLedger.js')
+  const invoice={id:20,invoiceNo:'INV-20',amount:5000,amountPaid:0,status:'pending'}
+  const terms={grandTotal:5000,discount:0,tax:0}
+  const first=recordInstallment(invoice,2000,terms,{id:1,receiptNo:'R1',paidBy:'First payer',paymentDate:'12/10/2026 10:00'})
+  assert.equal(first.status,'partial'); assert.equal(invoiceBalance(first),3000)
+  assert.deepEqual(ledgerTotals([first]),{collected:2000,outstanding:3000})
+  assert.throws(()=>recordInstallment(first,3001,terms,{}))
+  assert.throws(()=>recordInstallment(first,0,terms,{}))
+  assert.throws(()=>recordInstallment(first,1.001,terms,{}))
+  const final=recordInstallment(first,3000,{grandTotal:9999,discount:100,tax:50},{id:2,receiptNo:'R2',paidBy:'Second payer',paymentDate:'13/10/2026 10:00'})
+  assert.equal(final.status,'paid'); assert.equal(final.totalDue,5000); assert.equal(invoiceBalance(final),0)
+  assert.equal(final.collections[0].paidBy,'First payer'); assert.equal(final.collections[1].amountPaid,3000)
+  assert.equal(collectionEntries(final).length,2)
+  assert.throws(()=>recordInstallment(final,1,terms,{}))
+  const waived=recordInstallment(invoice,0,{grandTotal:0,discount:5000,tax:0},{id:3})
+  assert.equal(waived.status,'paid')
+})

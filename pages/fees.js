@@ -1,4 +1,4 @@
-import { invoiceAmount } from '../lib/feeLedger'
+import { invoiceAmount, invoiceBalance, recordInstallment } from '../lib/feeLedger'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import FeeClassRateEditor from '../components/FeeClassRateEditor'
@@ -119,6 +119,7 @@ export default function Fees() {
   const [sortBy, setSortBy] = useState('latest')
 
   // Modal control states
+  const [collectionAmount, setCollectionAmount] = useState('')
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [selectedTransaction, setSelectedTransaction] = useState(null)
   const [paymentForm, setPaymentForm] = useState({
@@ -244,11 +245,11 @@ export default function Fees() {
   // Overview metrics
   const stats = useMemo(() => {
     const paidList = scopedTransactions.filter((t) => t.status === 'paid')
-    const unpaidList = scopedTransactions.filter((t) => t.status === 'pending' || t.status === 'overdue')
+    const unpaidList = scopedTransactions.filter((t) => t.status !== 'paid')
 
-    const totalCollected = paidList.reduce((sum, t) => sum + (t.amountPaid || 0), 0)
+    const totalCollected = scopedTransactions.reduce((sum, t) => sum + (t.amountPaid || 0), 0)
     // Calculate dynamic total outstanding based on actual invoice values
-    const totalOutstanding = unpaidList.reduce((sum, t) => sum + (t.invoiceAmount ?? 0), 0)
+    const totalOutstanding = unpaidList.reduce((sum, t) => sum + invoiceBalance(t), 0)
 
     const totalInvoices = scopedTransactions.length
     const collectionRate = totalInvoices > 0 
@@ -295,7 +296,7 @@ export default function Fees() {
   const calculatedTotals = useMemo(() => {
     if (!selectedTransaction) return { subtotal: 0, discount: 0, tax: 0, grandTotal: 0, words: '' }
     const subtotal = selectedTransaction.invoiceAmount || 0
-    const totals = paymentTotals(subtotal, paymentForm)
+    const totals = selectedTransaction.totalDue !== undefined ? {subtotal, discount:selectedTransaction.discountAmount || 0, tax:selectedTransaction.taxAmount || 0, grandTotal:selectedTransaction.totalDue, error:''} : paymentTotals(subtotal, paymentForm)
     return { ...totals, words: numberToWords(totals.grandTotal) }
   }, [selectedTransaction, paymentForm.discountType, paymentForm.customDiscount, paymentForm.taxType, paymentForm.customTax])
 
@@ -342,6 +343,7 @@ export default function Fees() {
       return
     }
     setSelectedTransaction(tx)
+    setCollectionAmount('')
     setPaymentForm({
       payerName: tx.defaultGuardian || '',
       relationship: payerRelationships.includes('Father') ? 'Father' : (payerRelationships[0] || 'custom'),
@@ -410,35 +412,19 @@ export default function Fees() {
     const now = new Date()
     const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
 
-    const updatedStudents = students.map((st) => {
-        if (st.id === selectedTransaction.studentId) {
-          const updatedPayments = (st.payments || []).map((pay) => {
-            if (pay.invoiceNo === selectedTransaction.invoiceNo) {
-              return {
-                ...pay,
-                status: 'paid',
-                amountPaid: calculatedTotals.grandTotal, // Net paid amount
-                discountAmount: calculatedTotals.discount,
-                taxAmount: calculatedTotals.tax,
-                inWords: calculatedTotals.words,
-                discountType: paymentForm.discountType,
-                customDiscount: paymentForm.customDiscount,
-                taxType: paymentForm.taxType,
-                customTax: paymentForm.customTax,
-                paymentDate: formattedDate,
-                paidBy: paymentForm.payerName.trim(),
-                payerRelation: finalRelation,
-                paymentMode: paymentForm.paymentMode,
-                onlineApp: paymentForm.paymentMode === 'Online' ? finalApp : '',
-                receivedBy: currentUser
-              }
-            }
-            return pay
-          })
-          return { ...st, payments: updatedPayments }
-        }
-        return st
+    let updatedInvoice
+    try {
+      const current = students.find(st => st.id === selectedTransaction.studentId)?.payments?.find(p => p.id === selectedTransaction.id)
+      if (!current) throw new Error('Invoice no longer exists. Reload the ledger.')
+      const amount = collectionAmount === '' ? Math.max(0, calculatedTotals.grandTotal - Number(current.amountPaid || 0)) : Number(collectionAmount)
+      updatedInvoice = recordInstallment(current, amount, calculatedTotals, {
+        id:makeId(), receiptNo:`RCT-${makeId().toString(36).toUpperCase()}`, paymentDate:formattedDate,
+        paidBy:paymentForm.payerName.trim(), payerRelation:finalRelation, paymentMode:paymentForm.paymentMode,
+        onlineApp:paymentForm.paymentMode === 'Online' ? finalApp : '', receivedBy:currentUser
       })
+      updatedInvoice.inWords = numberToWords(updatedInvoice.amountPaid)
+    } catch (error) {showToast(error.message,'error');return}
+    const updatedStudents = students.map(st => st.id === selectedTransaction.studentId ? {...st,payments:st.payments.map(pay => pay.id === selectedTransaction.id ? updatedInvoice : pay)} : st)
     if (!writeStoredList(STORAGE_KEYS.students, updatedStudents)) return
     setStudents(updatedStudents)
 
@@ -724,7 +710,7 @@ export default function Fees() {
               <select aria-label="Status Filter" className="roles-filter" style={{ margin: 0, width: '100%' }} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
                 <option value="all">All Payment Statuses</option>
                 <option value="paid">✅ Paid Invoices</option>
-                <option value="pending">⏳ Pending Verification</option>
+                <option value="pending">⏳ Unpaid</option><option value="partial">Partially paid</option>
                 <option value="overdue">🚨 Overdue Arrears</option>
               </select>
 
@@ -808,13 +794,13 @@ export default function Fees() {
                             <span style={{ fontWeight: 600 }}>{t.month}</span>
                           </td>
                           <td>
-                            <strong style={{ color: 'var(--t1)' }}>{currencySymbol()}{t.invoiceAmount.toLocaleString()}</strong>{t.status === 'paid' && <div style={{fontSize:11,color:'var(--green)'}}>Collected: {currencySymbol()}{Number(t.amountPaid || 0).toFixed(2)}</div>}
+                            <strong style={{ color: 'var(--t1)' }}>{currencySymbol()}{t.invoiceAmount.toLocaleString()}</strong><div>Balance: {currencySymbol()}{invoiceBalance(t).toFixed(2)}</div>{Number(t.amountPaid) > 0 && <div style={{fontSize:11,color:'var(--green)'}}>Collected: {currencySymbol()}{Number(t.amountPaid || 0).toFixed(2)}</div>}
                           </td>
                           <td>
                             <span style={{ fontSize: '11.5px', fontFamily: 'monospace' }}>{t.paymentDate}</span>
                           </td>
                           <td>
-                            {t.status === 'paid' ? (
+                            {Number(t.amountPaid) > 0 ? (
                               <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                                 <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--t1)' }}>
                                   {t.paidBy} ({t.payerRelation})
@@ -832,10 +818,12 @@ export default function Fees() {
                           </td>
                           <td>
                             {t.status === 'paid' && <span className="badge badge-valid">Paid</span>}
+                            {t.status === 'partial' && <span className="badge badge-pending">Partially paid</span>}
                             {t.status === 'pending' && <span className="badge badge-pending">Pending</span>}
                             {t.status === 'overdue' && <span className="badge badge-blocked">Overdue</span>}
                           </td>
                           <td>
+                            {t.collections?.length > 0 && <details><summary>Payment history ({t.collections.length})</summary>{t.collections.map(entry=><div key={entry.id} style={{padding:8}}><p>{entry.receiptNo} · {entry.paymentDate}</p><p>{entry.paidBy} ({entry.payerRelation}) · {entry.paymentMode} {entry.onlineApp}</p><p>Paid: {currencySymbol()}{entry.amountPaid.toFixed(2)} · Remaining: {currencySymbol()}{entry.balanceAfter.toFixed(2)}</p><button className="btn btn-ghost btn-xs" onClick={()=>printToPDF(`Payment receipt ${entry.receiptNo}`,['Invoice','Student','Date','Payer','Relationship','Method','Paid','Balance after'],[[t.invoiceNo,t.studentName,entry.paymentDate,entry.paidBy,entry.payerRelation,`${entry.paymentMode} ${entry.onlineApp || ''}`,entry.amountPaid.toFixed(2),entry.balanceAfter.toFixed(2)]])}>Print payment receipt</button></div>)}</details>}
                             <div className="roles-actions" style={{ justifyContent: 'flex-end' }}>
                               {t.status === 'paid' ? (
                                 <button className="btn btn-ghost btn-xs" title="Print Invoice Slip" onClick={() => openPrintReceipt(t)}>
@@ -1143,7 +1131,7 @@ export default function Fees() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
                   <div className="form-group">
                     <label>Discount Settings</label>
-                    <select aria-label="Discount Settings"
+                    <select disabled={selectedTransaction?.totalDue !== undefined} aria-label="Discount Settings"
                       className="form-select"
                       value={paymentForm.discountType || 'none'}
                       onChange={(e) => setPaymentForm({ ...paymentForm, discountType: e.target.value, customDiscount: '' })}
@@ -1163,7 +1151,7 @@ export default function Fees() {
                   {(paymentForm.discountType === 'customPercent' || paymentForm.discountType === 'customAmount') ? (
                     <div className="form-group">
                       <label>{paymentForm.discountType === 'customPercent' ? 'Discount (%)' : `Discount (${currencySymbol()})`} <span className="req">*</span></label>
-                      <input aria-label="Custom discount" step="0.01"
+                      <input disabled={selectedTransaction?.totalDue !== undefined} aria-label="Custom discount" step="0.01"
                         className="form-input"
                         type="number"
                         min="0"
@@ -1182,7 +1170,7 @@ export default function Fees() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
                   <div className="form-group">
                     <label>Tax System</label>
-                    <select aria-label="Tax System"
+                    <select disabled={selectedTransaction?.totalDue !== undefined} aria-label="Tax System"
                       className="form-select"
                       value={paymentForm.taxType || 'none'}
                       onChange={(e) => setPaymentForm({ ...paymentForm, taxType: e.target.value, customTax: '' })}
@@ -1199,7 +1187,7 @@ export default function Fees() {
                   {(paymentForm.taxType === 'customPercent' || paymentForm.taxType === 'customAmount') ? (
                     <div className="form-group">
                       <label>{paymentForm.taxType === 'customPercent' ? 'Tax Rate (%)' : `Tax Amount (${currencySymbol()})`} <span className="req">*</span></label>
-                      <input aria-label="Custom tax" step="0.01"
+                      <input disabled={selectedTransaction?.totalDue !== undefined} aria-label="Custom tax" step="0.01"
                         className="form-input"
                         type="number"
                         min="0"
@@ -1244,6 +1232,11 @@ export default function Fees() {
                 </div>
               </div>
 
+                <div style={{marginBottom:16}}>
+                  <p>Already collected: {currencySymbol()}{Number(selectedTransaction.amountPaid || 0).toFixed(2)} · Remaining: {currencySymbol()}{Math.max(0,calculatedTotals.grandTotal-Number(selectedTransaction.amountPaid || 0)).toFixed(2)}</p>
+                  <label>Collect now ({currencySymbol()})<input className="form-input" aria-label="Collect now" type="number" min="0" step="0.01" max={Math.max(0,calculatedTotals.grandTotal-Number(selectedTransaction.amountPaid || 0))} placeholder="Leave blank to settle remaining balance" value={collectionAmount} onChange={e=>setCollectionAmount(e.target.value)}/></label>
+                  <small>Discount and tax are fixed after the first payment.</small>
+                </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-ghost" onClick={() => setShowPaymentModal(false)}>Cancel</button>
                 <button type="submit" className="btn btn-primary">

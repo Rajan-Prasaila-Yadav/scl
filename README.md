@@ -35,7 +35,7 @@ For production preview, stop the development server, run `npm.cmd run validate`,
 
 ## Checks
 
-`npm run check` parses application source and detects unresolved identifiers. `npm test` runs twenty-one regression tests. `npm run build` builds production routes. `npm run validate` runs all three.
+`npm run check` parses application source and detects unresolved identifiers. `npm test` runs twenty-two regression tests. `npm run build` builds production routes. `npm run validate` runs all three.
 
 Next.js 16 currently warns about React 18 deprecation; the tested build supports it. Node's direct test imports produce a module-type warning.
 
