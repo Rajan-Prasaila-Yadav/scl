@@ -105,3 +105,16 @@ Previously invoiced one-time charges disappear from New bill items. Recurring ch
 Daily/weekly/monthly/yearly quantities are whole units; hourly quantities may be fractional; one-time quantity is fixed at one. Rates still use student override, class rate, then base rate. New invoices remain unpaid until collection. No automatic recurring scheduler or backend was added.
 
 Validation: source checks, 26 tests and production build passed. Browser testing on a separate demo origin saved a bill containing three months of tuition, one month of lab fees and one week of library fees (14150), checked printed line periods and confirmed those periods were excluded on reopening the generator. Automated tests cover mixed annual/one-time charges across pending, partial and paid states and renewal in a later year. Local only; not pushed or deployed.
+
+## Dedicated bill workspace — 12 October 2026
+
+Generate Invoices now opens `/fees?view=bill`, a dedicated page within the application shell. The ledger and fee configurator are absent while creating a bill. This replaces the generator popup and its class-batch selector with the requested class-first individual-student workflow.
+
+1. Select a class. The student selector/search only contains active students from that class.
+2. Select the student. Their active class-assigned fee definitions and effective student rates load; no fee items are shown before selection.
+3. Select items and adjust each recurring period/quantity. Previously billed periods remain excluded as described above.
+4. Review the itemized bill alongside the controls, then Generate student bill. The saved invoice opens automatically for review/printing, including admission number and class.
+
+Student/class entry context is retained. Changing class clears the selected student; changing either resets draft item choices so one student's quantities are not carried into another student's bill. Existing outstanding balances are displayed separately and are not added again to the new invoice. The calculation helper still supports batch data, but this dedicated UI is for one student at a time. Browser refresh reloads saved records, not an unsaved draft.
+
+Verification: source checks, 26 tests and production build passed. Browser checks confirmed class-filtered student choices, a three-month tuition preview, saving the bill, and automatic invoice display with the correct student admission number and class. Local prototype only; no push/deployment.

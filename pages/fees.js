@@ -150,7 +150,7 @@ export default function Fees() {
     status: 'active'
   })
 
-  const [showBatchModal, setShowBatchModal] = useState(false)
+
   const [activeReceipt, setActiveReceipt] = useState(null)
 
   useEffect(() => {
@@ -435,7 +435,7 @@ export default function Fees() {
 
   const openBatchGenerate = () => {
     if (!requirePermission('create')) return
-    setShowBatchModal(true)
+    router.push({pathname:'/fees',query:{...router.query,view:'bill'}},undefined,{shallow:true})
   }
   const handleRunBatchGenerate = (form) => {
     if (!requirePermission('create')) return
@@ -449,7 +449,15 @@ export default function Fees() {
         return { ...student, payments:[...(student.payments || []),invoice] }
       })
       if (!writeStoredList(STORAGE_KEYS.students, updated)) return
-      setStudents(updated); setShowBatchModal(false)
+      setStudents(updated)
+      const billedStudent = updated.find(student => String(student.id) === String(form.studentId))
+      if (billedStudent) {
+        const invoice = billedStudent.payments[billedStudent.payments.length - 1]
+        const billedClass = classes.find(item => String(item.id) === String(billedStudent.classId))
+        setActiveReceipt({...invoice, admissionNo:billedStudent.admissionNo || '', className:billedClass ? `${billedClass.name} - Section ${billedClass.section}` : 'Unknown Class', studentId:billedStudent.id, studentName:billedStudent.name, classId:billedStudent.classId, invoiceAmount:invoice.amount})
+      }
+      const {view, ...query} = router.query
+      router.replace({pathname:'/fees',query},undefined,{shallow:true})
       showToast(`Generated ${preview.invoices.length} invoices. ${preview.skipped} duplicate/overlapping charges skipped.`, 'success')
     } catch (error) { showToast(error.message, 'error') }
   }
@@ -559,6 +567,11 @@ export default function Fees() {
       classIds: select ? classes.map((c) => c.id) : []
     }))
   }
+
+  if (router.query.view === 'bill') return <Layout>
+    {hydrated ? <BillingGenerator initialStudentId={router.query.studentId} initialClassId={router.query.collectionClass || router.query.classId || router.query.fromClass} students={students} classes={classes} fees={fees}
+      onClose={() => { const {view,...query}=router.query; router.push({pathname:'/fees',query},undefined,{shallow:true}) }} onGenerate={handleRunBatchGenerate} /> : <p>Loading billing records…</p>}
+  </Layout>
 
   return (
     <Layout>
@@ -1248,7 +1261,7 @@ export default function Fees() {
         </Dialog>
       )}
 
-      {showBatchModal && <BillingGenerator initialStudentId={router.query.studentId} initialClassId={router.query.collectionClass || router.query.classId || router.query.fromClass} students={students} classes={classes} fees={fees} onClose={() => setShowBatchModal(false)} onGenerate={handleRunBatchGenerate} />}
+
 
       {/* MODAL 3: INVOICE RECEIPT MODAL */}
       {activeReceipt && (
