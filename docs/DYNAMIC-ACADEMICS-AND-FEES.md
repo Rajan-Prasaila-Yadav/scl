@@ -95,3 +95,13 @@ Verified in the browser: paying 2000 against 5150 automatically opened PARTIALLY
 - Invalid, inactive or mismatched students cannot fall back to billing the class. Duplicate/overlapping charges retain existing skip rules.
 - The generator has a bounded panel, internally scrolling body, responsive fields and a fixed header/footer within the panel.
 - Verification: source check, all 24 regression tests and production build passed. On an isolated demo origin, browser testing saved one three-month invoice for Aarav (15000), confirmed batch mode skipped those charges, and visually checked panel containment and visible actions. No live deployment or backend changes.
+
+## Mixed-frequency student bills — 12 October 2026
+
+The generator now combines selected fees of different frequencies into one invoice per student. Each item has an independent start date and quantity; the preview and printed invoice retain its frequency, rate, quantity, covered period and amount. This replaces the single-frequency generator controls described in earlier sections.
+
+Previously invoiced one-time charges disappear from New bill items. Recurring charges are excluded when their requested period overlaps an existing invoice. This applies to unpaid and partially paid invoices too: collect their balance through the existing ledger invoice instead of creating another charge. Excluded items remain available in a collapsed history section with invoice references and status; recurring items can be moved to a new period there. One-time means once per student per fee definition. Yearly periods currently mean calendar years, not academic years; a later non-overlapping year is eligible again. Legacy annual items without a determinable period are conservatively excluded for manual review. Partial overlaps skip the whole requested item rather than prorating uncovered days.
+
+Daily/weekly/monthly/yearly quantities are whole units; hourly quantities may be fractional; one-time quantity is fixed at one. Rates still use student override, class rate, then base rate. New invoices remain unpaid until collection. No automatic recurring scheduler or backend was added.
+
+Validation: source checks, 26 tests and production build passed. Browser testing on a separate demo origin saved a bill containing three months of tuition, one month of lab fees and one week of library fees (14150), checked printed line periods and confirmed those periods were excluded on reopening the generator. Automated tests cover mixed annual/one-time charges across pending, partial and paid states and renewal in a later year. Local only; not pushed or deployed.

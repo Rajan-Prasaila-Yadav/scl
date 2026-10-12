@@ -116,3 +116,28 @@ test('individual billing rejects absent, unknown, inactive and wrong-class stude
   }
   assert.throws(()=>buildBillingPreview([{...student,status:'inactive'}],[fee],{...form,scope:'student',studentId:'1'}),/Select an active student/)
 })
+
+test('mixed bills combine independent frequencies and never recharge reserved one-time or annual items',()=>{
+  const annual={...fee,id:11,name:'Annual',frequency:'Yearly',amount:200,classRates:{}}
+  const once={...fee,id:12,name:'Admission',frequency:'One-Time',amount:50,classRates:{}}
+  const mixed={...form,scope:'student',studentId:'1',items:[{feeId:10,start:'2026-10-12',quantity:3},{feeId:11,start:'2026-10-12',quantity:1},{feeId:12,start:'2026-10-12',quantity:1}]}
+  const first=buildBillingPreview([student],[fee,annual,once],mixed)
+  assert.equal(first.invoices.length,1)
+  assert.equal(first.total,700)
+  assert.deepEqual(first.invoices[0].lines.map(l=>l.quantity),[3,1,1])
+  for (const status of ['pending','partial','paid']) {
+    const saved={...student,payments:[{status,feesBreakdown:first.invoices[0].lines}]}
+    assert.equal(buildBillingPreview([saved],[fee,annual,once],mixed).invoices.length,0)
+    const next=buildBillingPreview([saved],[fee,annual,once],{...mixed,items:[{feeId:11,start:'2027-01-01',quantity:1},{feeId:12,start:'2027-01-01',quantity:1}]})
+    assert.equal(next.total,200)
+    assert.equal(next.invoices[0].lines.length,1)
+  }
+  assert.throws(()=>buildBillingPreview([student],[fee],{...mixed,items:[mixed.items[0],mixed.items[0]]}),/only once/)
+})
+
+test('mixed daily weekly and hourly items multiply their own quantities',()=>{
+  const fees=['Daily','Weekly','Hourly'].map((frequency,i)=>({...fee,id:20+i,frequency,amount:10,classRates:{}}))
+  const preview=buildBillingPreview([student],fees,{...form,items:[{feeId:20,start:'2026-10-12',quantity:5},{feeId:21,start:'2026-10-12',quantity:2},{feeId:22,start:'2026-10-12T09:00',quantity:1.5}]})
+  assert.equal(preview.total,85)
+  assert.equal(preview.invoices[0].lines[2].periodEnd,'2026-10-12T10:30')
+})

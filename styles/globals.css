@@ -1838,3 +1838,8 @@ a { text-decoration: none; color: inherit; }
   .billing-generator .modal-footer { flex-wrap:wrap; }
   .billing-generator .modal-footer .btn { flex:1; justify-content:center; }
 }
+.mixed-bill-item { padding:14px 0; border-bottom:1px solid var(--border); }
+.mixed-bill-item:last-child { border-bottom:0; }
+.billing-generator-fees .billing-generator-grid label { display:flex; align-items:stretch; padding:8px; font-size:12px; }
+.billing-generator-fees summary { cursor:pointer; font-size:13px; font-weight:600; }
+.mixed-bill-item p { font-size:12px; color:var(--t2); margin:8px 0; }

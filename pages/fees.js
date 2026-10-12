@@ -1332,7 +1332,7 @@ export default function Fees() {
                         return (
                           <tr key={idx}>
                             <td style={{ textAlign: 'center' }}>{idx + 1}</td>
-                            <td><strong>{details.name}</strong></td>
+                            <td><strong>{details.name}</strong>{feeItem.periodStart && <div style={{fontSize:11}}>From {feeItem.periodStart.replace('T',' ')} to {feeItem.periodEnd?.replace('T',' ')} (end exclusive)</div>}</td>
                             <td>{details.frequency}</td>
                             <td style={{ textAlign: 'right' }}>{details.rate.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                             <td style={{ textAlign: 'center' }}>{details.qty}</td>
