@@ -6,7 +6,7 @@ import { INITIAL_FEES } from '../lib/feeData'
 import { getRaw } from '../lib/storage'
 import { currencySymbol } from '../lib/schoolConfig'
 import { requirePermission } from '../lib/permissions'
-import { BILLING_FREQUENCIES, buildBillingPreview, paymentTotals, relationshipError, normalizeRelationship } from '../lib/billing'
+import { billingPeriodText, BILLING_FREQUENCIES, buildBillingPreview, paymentTotals, relationshipError, normalizeRelationship } from '../lib/billing'
 import BillingGenerator from '../components/BillingGenerator'
 import PayerRelationships from '../components/PayerRelationships'
 import Dialog from '../components/Dialog'
@@ -307,7 +307,7 @@ export default function Fees() {
       t.invoiceNo,
       t.studentName,
       t.className,
-      t.month,
+      billingPeriodText(t.month),
       `${currencySymbol()}${t.invoiceAmount}`,
       t.paymentDate || '—',
       t.status === 'paid' ? `${t.paidBy} (${t.payerRelation})` : '—',
@@ -325,7 +325,7 @@ export default function Fees() {
       t.invoiceNo,
       t.studentName,
       t.className,
-      t.month,
+      billingPeriodText(t.month),
       `${currencySymbol()}${t.invoiceAmount}`,
       t.paymentDate || '—',
       t.status === 'paid' ? `${t.paidBy} (${t.payerRelation})` : '—',
@@ -805,7 +805,7 @@ export default function Fees() {
                             <span style={{ fontSize: '12px', color: 'var(--t2)' }}>{t.className}</span>
                           </td>
                           <td>
-                            <span style={{ fontWeight: 600 }}>{t.month}</span>
+                            <span style={{ fontWeight: 600 }}>{billingPeriodText(t.month)}</span>
                           </td>
                           <td>
                             <strong style={{ color: 'var(--t1)' }}>{currencySymbol()}{t.invoiceAmount.toLocaleString()}</strong><div>Balance: {currencySymbol()}{invoiceBalance(t).toFixed(2)}</div>{Number(t.amountPaid) > 0 && <div style={{fontSize:11,color:'var(--green)'}}>Collected: {currencySymbol()}{Number(t.amountPaid || 0).toFixed(2)}</div>}
@@ -1044,7 +1044,7 @@ export default function Fees() {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span>Billing Period:</span>
-                    <strong style={{ color: 'var(--t1)', marginLeft: 'auto' }}>{selectedTransaction.month}</strong>
+                    <strong style={{ color: 'var(--t1)', marginLeft: 'auto' }}>{billingPeriodText(selectedTransaction.month)}</strong>
                   </div>
                 </div>
 
@@ -1309,7 +1309,7 @@ export default function Fees() {
                       </tr>
                       <tr>
                         <td><strong>Class / Section:</strong> {activeReceipt.className}</td>
-                        <td><strong>Billing Period:</strong> {activeReceipt.month}</td>
+                        <td><strong>Billing Period:</strong> {billingPeriodText(activeReceipt.month)}</td>
                       </tr>
                       <tr>
                         <td><strong>Payer Name:</strong> {activeReceipt.paidBy} ({activeReceipt.payerRelation})</td>
@@ -1345,7 +1345,7 @@ export default function Fees() {
                         return (
                           <tr key={idx}>
                             <td style={{ textAlign: 'center' }}>{idx + 1}</td>
-                            <td><strong>{details.name}</strong>{feeItem.periodStart && <div style={{fontSize:11}}>From {feeItem.periodStart.replace('T',' ')} to {feeItem.periodEnd?.replace('T',' ')} (end exclusive)</div>}</td>
+                            <td><strong>{details.name}</strong>{feeItem.periodStart && <div style={{fontSize:11}}>From {billingPeriodText(feeItem.periodStart)} to {billingPeriodText(feeItem.periodEnd)} (end exclusive)</div>}</td>
                             <td>{details.frequency}</td>
                             <td style={{ textAlign: 'right' }}>{details.rate.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                             <td style={{ textAlign: 'center' }}>{details.qty}</td>

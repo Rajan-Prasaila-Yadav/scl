@@ -124,3 +124,9 @@ Verification: source checks, 26 tests and production build passed. Browser check
 The invoice preview now offers Collect payment for unpaid bills and Collect remaining balance for partial bills. Leave pending closes a new unpaid invoice without recording money. A fully paid bill has no collection action. Collection resolves the current ledger entry before opening the shared payment form, and repeat collections prefill the previous payer/relation when available. Each collection reopens the updated invoice summary and preserves its original invoice number and receipt history.
 
 Verification: npm run validate passed (26 tests plus source checks and production build). An isolated browser demo generated a 5150 bill, collected 2000, verified partial status and 3150 balance, then collected 3150 through the bill's remaining-balance button. The same invoice showed two receipts, Paid in full and zero balance. No push/deployment.
+
+## Short billing dates — 12 October 2026
+
+Billing period displays now use dates only, for example `Monthly · 2026-10-01 → 2027-01-01 (3 units)`. This applies to the bill builder, printed invoice items, collection form, fee ledger, shared class/student ledger and ledger exports. Existing stored invoice labels are formatted when displayed, so old bills also lose the unnecessary clock portion without rewriting records. Exact stored period boundaries and hourly calculations remain unchanged; payment timestamps and receipt history retain their times.
+
+Verification: source checks, all 26 tests and production build passed. A direct formatter check confirmed legacy labels lose clock times while an hourly 09:00–10:30 billing boundary remains unchanged in the underlying data. Local only; not deployed.
