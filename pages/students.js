@@ -2360,7 +2360,7 @@ export default function Students() {
             )}
 
             {/* ─── Fees & Payments Tab ─── */}
-            {detailTab === 'payments' && <FeeCollectionLedger student={selectedStudent} students={students} fees={fees} />}
+            {detailTab === 'payments' && <FeeCollectionLedger student={selectedStudent} students={students} fees={fees} classes={classes} />}
 
             {/* ─── Fee Customizations Tab ─── */}
             {detailTab === 'feeOverrides' && (

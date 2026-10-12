@@ -1868,3 +1868,13 @@ a { text-decoration: none; color: inherit; }
  .bill-workspace > form > .modal-body > .billing-generator-grid { grid-template-columns:1fr; }
  .bill-workspace > .modal-header,.bill-student-summary { flex-direction:column; align-items:stretch; }
 }
+.student-fee-statement h4 { margin:26px 0 12px; }
+.student-fee-statement .table-wrap { margin:16px 0; }
+.statement-actions { display:flex; gap:10px; flex-wrap:wrap; }
+.statement-totals { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin:20px 0; }
+.statement-totals > div { background:var(--bg3); padding:20px; border:1px solid var(--border); border-radius:12px; }
+.statement-totals small { display:block; color:var(--t2); margin-bottom:10px; }
+.statement-totals strong { font-size:22px; }
+@media(max-width:600px) { .statement-totals { grid-template-columns:1fr; } }
+.student-fee-statement { padding:24px; }
+@media(max-width:600px) { .student-fee-statement { padding:14px; } }

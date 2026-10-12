@@ -1,9 +1,10 @@
+import StudentFeeStatement from './StudentFeeStatement'
 import { billingPeriodText } from '../lib/billing'
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { currencySymbol } from '../lib/schoolConfig'
 import { invoiceRows, ledgerTotals, effectiveFeeRate, invoiceBalance } from '../lib/feeLedger'
-export default function FeeCollectionLedger({ students, fees = [], student, classId }) {
+export default function FeeCollectionLedger({ students, fees = [], student, classId, classes = [] }) {
   const [search,setSearch] = useState('')
   const [status,setStatus] = useState('all')
   const [sort,setSort] = useState('latest')
@@ -13,6 +14,10 @@ export default function FeeCollectionLedger({ students, fees = [], student, clas
   const context = student ? `studentId=${student.id}&fromStudent=${student.id}` : `collectionClass=${classId}&fromClass=${classId}`
   const visible = rows.filter(r => (status === 'all' || r.status === status) && `${r.studentName} ${r.invoiceNo} ${billingPeriodText(r.month)}`.toLowerCase().includes(search.toLowerCase().trim())).sort((a,b) => sort === 'amount' ? b.invoiceAmount-a.invoiceAmount : Number(b.id)-Number(a.id))
   const money = value => `${currencySymbol()}${Number(value).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`
+  if (student) {
+    const classroom=classes.find(item=>String(item.id)===String(student.classId))
+    return <StudentFeeStatement student={student} fees={fees} classroom={classroom ? `${classroom.name} — ${classroom.section}` : 'Class not recorded'}/>
+  }
   return <section className="class-fees">
     <div className="class-fees-heading"><div><h3>Student invoices & collections</h3><p className="class-fees-count">Collected: {money(totals.collected)} · Outstanding: {money(totals.outstanding)}</p></div><Link className="btn btn-primary" href={`/fees?${context}`}>Collect fees / view ledger</Link></div>
     {student && <><h4>Current applicable fee rates</h4><p className="class-fees-note">Rates below apply to new invoices. Issued invoices retain their original amounts.</p><div className="table-wrap"><table className="roles-table"><thead><tr><th>Fee</th><th>Frequency</th><th>Class rate</th><th>Student rate</th></tr></thead><tbody>{fees.filter(f=>f.status==='active' && (f.classIds || []).some(id=>String(id)===String(student.classId))).map(f=><tr key={f.id}><td>{f.name}</td><td>{f.frequency}</td><td>{money(effectiveFeeRate(f,student.classId))}</td><td>{money(effectiveFeeRate(f,student.classId,student.feeOverrides))}</td></tr>)}</tbody></table></div></>}
