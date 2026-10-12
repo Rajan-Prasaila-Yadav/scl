@@ -345,8 +345,8 @@ export default function Fees() {
     setSelectedTransaction(tx)
     setCollectionAmount('')
     setPaymentForm({
-      payerName: tx.defaultGuardian || '',
-      relationship: payerRelationships.includes('Father') ? 'Father' : (payerRelationships[0] || 'custom'),
+      payerName: (tx.paidBy && tx.paidBy !== '—' ? tx.paidBy : tx.defaultGuardian) || '',
+      relationship: payerRelationships.includes(tx.payerRelation) ? tx.payerRelation : payerRelationships.includes('Father') ? 'Father' : (payerRelationships[0] || 'custom'),
       paymentMode: 'Cash',
       onlineApp: 'E-Sewa',
       customOnlineApp: '',
@@ -1429,8 +1429,14 @@ export default function Fees() {
               </div>
             </div>
 
-            <div className="modal-footer no-print">
-              <button type="button" className="btn btn-ghost" onClick={() => setActiveReceipt(null)}>Close</button>
+            <div className="modal-footer no-print" style={{gap:12,flexWrap:'wrap'}}>
+              <button type="button" className="btn btn-ghost" onClick={() => setActiveReceipt(null)}>{activeReceipt.status === 'pending' ? 'Leave pending' : 'Close'}</button>
+              {activeReceipt.status !== 'paid' && hasEditPermission && <button type="button" className="btn btn-primary" onClick={() => {
+                const current = allTransactions.find(invoice => invoice.studentId === activeReceipt.studentId && invoice.id === activeReceipt.id)
+                if (!current || current.status === 'paid') { showToast('This invoice has changed. Please reopen it from the ledger.', 'info'); return }
+                setActiveReceipt(null)
+                openRecordPayment(current)
+              }}>{activeReceipt.status === 'partial' ? 'Collect remaining balance' : 'Collect payment'}</button>}
               <button type="button" className="btn btn-primary" onClick={() => window.print()}>
                 <i className="fa-solid fa-print"></i> Print Slip
               </button>

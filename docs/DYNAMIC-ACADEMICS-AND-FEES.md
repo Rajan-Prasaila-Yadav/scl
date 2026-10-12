@@ -118,3 +118,9 @@ Generate Invoices now opens `/fees?view=bill`, a dedicated page within the appli
 Student/class entry context is retained. Changing class clears the selected student; changing either resets draft item choices so one student's quantities are not carried into another student's bill. Existing outstanding balances are displayed separately and are not added again to the new invoice. The calculation helper still supports batch data, but this dedicated UI is for one student at a time. Browser refresh reloads saved records, not an unsaved draft.
 
 Verification: source checks, 26 tests and production build passed. Browser checks confirmed class-filtered student choices, a three-month tuition preview, saving the bill, and automatic invoice display with the correct student admission number and class. Local prototype only; no push/deployment.
+
+## Collect directly from the bill — 12 October 2026
+
+The invoice preview now offers Collect payment for unpaid bills and Collect remaining balance for partial bills. Leave pending closes a new unpaid invoice without recording money. A fully paid bill has no collection action. Collection resolves the current ledger entry before opening the shared payment form, and repeat collections prefill the previous payer/relation when available. Each collection reopens the updated invoice summary and preserves its original invoice number and receipt history.
+
+Verification: npm run validate passed (26 tests plus source checks and production build). An isolated browser demo generated a 5150 bill, collected 2000, verified partial status and 3150 balance, then collected 3150 through the bill's remaining-balance button. The same invoice showed two receipts, Paid in full and zero balance. No push/deployment.
