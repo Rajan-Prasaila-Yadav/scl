@@ -1878,3 +1878,5 @@ a { text-decoration: none; color: inherit; }
 @media(max-width:600px) { .statement-totals { grid-template-columns:1fr; } }
 .student-fee-statement { padding:24px; }
 @media(max-width:600px) { .student-fee-statement { padding:14px; } }
+.invoice-due { color:var(--t2); font-size:12px; margin-top:6px; }
+.invoice-overdue { color:var(--red); font-size:12px; font-weight:700; margin-top:6px; }

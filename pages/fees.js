@@ -1,3 +1,5 @@
+import { billingToday, validBillingDate, invoiceTiming, matchesInvoiceStatus } from '../lib/invoiceTiming'
+import useBillingToday from '../components/useBillingToday'
 import { invoiceAmount, invoiceBalance, invoiceDue, recordInstallment } from '../lib/feeLedger'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
@@ -79,6 +81,7 @@ export default function Fees() {
 
   // Layout Tab State: 'ledger' or 'configurator'
   const router = useRouter()
+  const billingDay = useBillingToday()
   const [configSearch, setConfigSearch] = useState('')
   const [configStatus, setConfigStatus] = useState('all')
   const [configFrequency, setConfigFrequency] = useState('all')
@@ -270,7 +273,7 @@ export default function Fees() {
     return scopedTransactions.filter((t) => {
       if (router.query.invoice && t.invoiceNo !== router.query.invoice) return false
       // 1. Status Filter
-      if (statusFilter !== 'all' && t.status !== statusFilter) return false
+      if (!matchesInvoiceStatus(t,statusFilter,billingDay)) return false
       // 2. Class Filter
       if (classFilter !== 'all' && String(t.classId) !== String(classFilter)) return false
       // 3. Search query matches
@@ -290,7 +293,7 @@ export default function Fees() {
       if (sortBy === 'studentName') return a.studentName.localeCompare(b.studentName)
       return (b.id || 0) - (a.id || 0)
     })
-  }, [router.query.invoice, scopedTransactions, searchQuery, statusFilter, classFilter, sortBy])
+  }, [router.query.invoice, scopedTransactions, searchQuery, statusFilter, classFilter, sortBy, billingDay])
 
   // Real-time calculations for recording payment
   const calculatedTotals = useMemo(() => {
@@ -302,12 +305,14 @@ export default function Fees() {
 
 
   const handleExportCSV = () => {
-    const headers = ['Invoice Ref', 'Student Name', 'Academic Class', 'Billing Period', 'Fee Amount', 'Payment Date', 'Collected From', 'Payment Mode', 'Collector', 'Status']
+    const headers = ['Invoice Ref', 'Student Name', 'Academic Class', 'Billing Period', 'Payment Due', 'Due Status', 'Fee Amount', 'Payment Date', 'Collected From', 'Payment Mode', 'Collector', 'Status']
     const rows = filteredTransactions.map((t) => [
       t.invoiceNo,
       t.studentName,
       t.className,
       billingPeriodText(t.month),
+      t.dueDate || 'Not recorded',
+      invoiceTiming(t,billingDay).label,
       `${currencySymbol()}${t.invoiceAmount}`,
       t.paymentDate || '—',
       t.status === 'paid' ? `${t.paidBy} (${t.payerRelation})` : '—',
@@ -320,12 +325,14 @@ export default function Fees() {
   }
 
   const handleExportPDF = () => {
-    const headers = ['Invoice Ref', 'Student Name', 'Academic Class', 'Billing Period', 'Fee Amount', 'Payment Date', 'Collected From', 'Collector', 'Status']
+    const headers = ['Invoice Ref', 'Student Name', 'Academic Class', 'Billing Period', 'Payment Due', 'Due Status', 'Fee Amount', 'Payment Date', 'Collected From', 'Collector', 'Status']
     const rows = filteredTransactions.map((t) => [
       t.invoiceNo,
       t.studentName,
       t.className,
       billingPeriodText(t.month),
+      t.dueDate || 'Not recorded',
+      invoiceTiming(t,billingDay).label,
       `${currencySymbol()}${t.invoiceAmount}`,
       t.paymentDate || '—',
       t.status === 'paid' ? `${t.paidBy} (${t.payerRelation})` : '—',
@@ -440,12 +447,13 @@ export default function Fees() {
   const handleRunBatchGenerate = (form) => {
     if (!requirePermission('create')) return
     try {
+      if (!validBillingDate(form.dueDate)) throw new Error('Choose a valid payment due date.')
       const preview = buildBillingPreview(students, fees, form)
       if (!preview.invoices.length) { showToast('No new eligible charges to generate.', 'info'); return }
       const updated = students.map(student => {
         const row = preview.invoices.find(item => item.studentId === student.id)
         if (!row) return student
-        const invoice = { id:makeId(), invoiceNo:`SLIP-${new Date().getFullYear()}-${makeId().toString(36).toUpperCase()}`, amount:row.amount, amountPaid:0, month:preview.period.label, status:'pending', paymentDate:'—', paidBy:'—', payerRelation:'—', feesBreakdown:row.lines }
+        const invoice = { id:makeId(), invoiceNo:`SLIP-${new Date().getFullYear()}-${makeId().toString(36).toUpperCase()}`, amount:row.amount, amountPaid:0, issueDate:billingToday(), dueDate:form.dueDate, month:preview.period.label, status:'pending', paymentDate:'—', paidBy:'—', payerRelation:'—', feesBreakdown:row.lines }
         return { ...student, payments:[...(student.payments || []),invoice] }
       })
       if (!writeStoredList(STORAGE_KEYS.students, updated)) return
@@ -805,7 +813,7 @@ export default function Fees() {
                             <span style={{ fontSize: '12px', color: 'var(--t2)' }}>{t.className}</span>
                           </td>
                           <td>
-                            <span style={{ fontWeight: 600 }}>{billingPeriodText(t.month)}</span>
+                            <span style={{ fontWeight: 600 }}>{billingPeriodText(t.month)}</span><div className={invoiceTiming(t,billingDay).overdue ? 'invoice-overdue' : 'invoice-due'}>{invoiceTiming(t,billingDay).label}</div>
                           </td>
                           <td>
                             <strong style={{ color: 'var(--t1)' }}>{currencySymbol()}{t.invoiceAmount.toLocaleString()}</strong><div>Balance: {currencySymbol()}{invoiceBalance(t).toFixed(2)}</div>{Number(t.amountPaid) > 0 && <div style={{fontSize:11,color:'var(--green)'}}>Collected: {currencySymbol()}{Number(t.amountPaid || 0).toFixed(2)}</div>}
@@ -834,7 +842,7 @@ export default function Fees() {
                             {t.status === 'paid' && <span className="badge badge-valid">Paid</span>}
                             {t.status === 'partial' && <span className="badge badge-pending">Partially paid</span>}
                             {t.status === 'pending' && <span className="badge badge-pending">Pending</span>}
-                            {t.status === 'overdue' && <span className="badge badge-blocked">Overdue</span>}
+                            {invoiceTiming(t,billingDay).overdue && <span className="badge badge-blocked">Overdue</span>}
                           </td>
                           <td>
                             {t.collections?.length > 0 && <details><summary>Payment history ({t.collections.length})</summary>{t.collections.map(entry=><div key={entry.id} style={{padding:8}}><p>{entry.receiptNo} · {entry.paymentDate}</p><p>{entry.paidBy} ({entry.payerRelation}) · {entry.paymentMode} {entry.onlineApp}</p><p>Paid: {currencySymbol()}{entry.amountPaid.toFixed(2)} · Remaining: {currencySymbol()}{entry.balanceAfter.toFixed(2)}</p><button className="btn btn-ghost btn-xs" onClick={()=>printToPDF(`Payment receipt ${entry.receiptNo}`,['Invoice','Student','Date','Payer','Relationship','Method','Paid','Balance after'],[[t.invoiceNo,t.studentName,entry.paymentDate,entry.paidBy,entry.payerRelation,`${entry.paymentMode} ${entry.onlineApp || ''}`,entry.amountPaid.toFixed(2),entry.balanceAfter.toFixed(2)]])}>Print payment receipt</button></div>)}</details>}
@@ -1044,7 +1052,7 @@ export default function Fees() {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span>Billing Period:</span>
-                    <strong style={{ color: 'var(--t1)', marginLeft: 'auto' }}>{billingPeriodText(selectedTransaction.month)}</strong>
+                    <strong style={{ color: 'var(--t1)', marginLeft: 'auto' }}>{billingPeriodText(selectedTransaction.month)}<br/>Payment due: {selectedTransaction.dueDate || 'Not recorded'} · {invoiceTiming(selectedTransaction,billingDay).label}</strong>
                   </div>
                 </div>
 
@@ -1309,7 +1317,7 @@ export default function Fees() {
                       </tr>
                       <tr>
                         <td><strong>Class / Section:</strong> {activeReceipt.className}</td>
-                        <td><strong>Billing Period:</strong> {billingPeriodText(activeReceipt.month)}</td>
+                        <td><strong>Billing Period:</strong> {billingPeriodText(activeReceipt.month)}<div><strong>Payment due:</strong> {activeReceipt.dueDate || 'Not recorded'}</div><div>{invoiceTiming(activeReceipt,billingDay).label}</div></td>
                       </tr>
                       <tr>
                         <td><strong>Payer Name:</strong> {activeReceipt.paidBy} ({activeReceipt.payerRelation})</td>
