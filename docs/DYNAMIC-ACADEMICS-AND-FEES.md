@@ -181,3 +181,11 @@ The builder shows paid, billed-but-not-fully-paid, remaining and consecutive ava
 One-time and yearly quantities are fixed at 1 in both validation and the UI. Other frequencies retain their units. The twelve-month activation window applies to Monthly fees; yearly fees retain calendar-year duplicate protection, and one-time fees remain once per student per fee definition. Academic year defaults to the active year unless arriving with an explicit year selection.
 
 Verification: source checks, 36 tests and production build passed. Regression tests verify a 500 rate × 6 months = 3000, six remaining months after full payment, rejection of ten additional months, unpaid-period reservations, leap February and yearly quantity rejection. Browser testing saved a class rate of 500 and activation 2026-02-02, confirmed the active-year student builder read it, displayed existing demo invoice coverage, and disabled generation for an excessive quantity. No push or deployment performed.
+
+## Active-year activation restriction — 15 October 2026
+
+Class fee activation now uses a read-only active academic year. Changing academic year remains a Settings operation. Both the class rate editor and full fee editor validate dates at save time, including rejecting an editor opened before the active year changed. Existing dates for other years are preserved.
+
+Settings → General now provides explicit Gregorian start/end dates for each academic year, saved with Save academic year dates. A year label alone cannot establish the school's term boundaries, so no dates are guessed. Activation accepts the start and end dates inclusively and rejects invalid, earlier and later dates. Monthly activation requires the range to be configured first. Date inputs expose the same minimum/maximum bounds. This restricts activation dates; the previously documented twelve-month monthly coverage rule is unchanged.
+
+Verification: source checks, 37 regression tests and production build passed. Tests cover both inclusive boundaries, invalid dates, dates outside the range, missing settings and changed active year. Browser inspection confirmed the Settings date fields, read-only activation year and missing-range guidance. Actual school term dates are awaiting the owner's input; none were invented. Local only, not deployed.

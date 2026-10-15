@@ -1,4 +1,4 @@
-import { academicBillingYears, invoiceYear } from '../lib/academicBilling'
+import { academicBillingYears, academicYearRange, activationDateError, invoiceYear } from '../lib/academicBilling'
 import { billingToday, validBillingDate, invoiceTiming, matchesInvoiceStatus } from '../lib/invoiceTiming'
 import useBillingToday from '../components/useBillingToday'
 import { invoiceAmount, invoiceBalance, invoiceDue, recordInstallment } from '../lib/feeLedger'
@@ -103,13 +103,14 @@ export default function Fees() {
       (configStatus === 'all' || fee.status === configStatus) && (configFrequency === 'all' || fee.frequency === configFrequency) &&
       `${fee.name} ${fee.description || ''} ${classNames}`.toLowerCase().includes(configSearch.trim().toLowerCase())
   }).sort((a,b) => configSort === 'low' ? effectiveRate(a)-effectiveRate(b) : configSort === 'high' ? effectiveRate(b)-effectiveRate(a) : a.name.localeCompare(b.name))
-  const saveClassRate = (fee, assigned, rate, starts) => {
+  const saveClassRate = (fee, assigned, rate, starts, year) => {
     if (!configClass || !requirePermission('edit','Fees')) return false
+    const error=assigned && (fee.frequency==='Monthly' || starts?.[year]) ? activationDateError(starts?.[year],year,academicBillingYears().active,academicYearRange(year)) : ''; if(error) {showToast(error,'error');return false}
     const classIds = (fee.classIds || []).filter(id => String(id) !== String(configClass.id))
     const classRates = {...fee.classRates}
     delete classRates[configClass.id]
     if (assigned && rate !== '') classRates[configClass.id] = Number(rate)
-    const updated = fees.map(f => f.id === fee.id ? {...f, classIds:assigned ? [...classIds,configClass.id] : classIds, classRates, classStarts:{...f.classStarts,[configClass.id]:starts}} : f)
+    const updated = fees.map(f => f.id === fee.id ? {...f, classIds:assigned ? [...classIds,configClass.id] : classIds, classRates, classStarts:{...f.classStarts,[configClass.id]:{...f.classStarts?.[configClass.id],[year]:starts?.[year]}}} : f)
     if (!writeStoredList('educore.fees',updated)) return false
     setFees(updated)
     return true
@@ -505,6 +506,7 @@ export default function Fees() {
         classIds: fee.classIds || [],
         classRates: fee.classRates || {},
         classStarts: fee.classStarts || {},
+        activationYear: academicBillingYears().active,
         status: fee.status || 'active'
       })
     } else {
@@ -517,6 +519,7 @@ export default function Fees() {
         classIds: configClass ? [configClass.id] : [],
         classRates: {},
         classStarts: {},
+        activationYear: academicBillingYears().active,
         status: 'active'
       })
     }
@@ -542,6 +545,15 @@ export default function Fees() {
     if (fees.some(f => f.id !== selectedFee?.id && f.name.trim().toLowerCase() === feeForm.name.trim().toLowerCase())) { showToast('A fee with this name already exists.', 'error'); return }
     if (Object.values(feeForm.classRates || {}).some(value => value !== '' && (!Number.isFinite(Number(value)) || Number(value) < 0))) { showToast('Class rates must be nonnegative numbers.', 'error'); return }
 
+    const active=academicBillingYears().active
+    if (feeForm.activationYear!==active) {showToast('Active academic year changed. Reopen the fee editor.','error');return}
+    for(const classId of feeForm.classIds) {
+      const date=feeForm.classStarts?.[classId]?.[active]
+      if(feeForm.frequency==='Monthly' || date) {
+        const error=activationDateError(date,feeForm.activationYear,active,academicYearRange(active))
+        if(error) {showToast(error,'error');return}
+      }
+    }
     const savedFee = {
       ...feeForm,
       id: selectedFee?.id ?? makeId(),
@@ -978,7 +990,7 @@ export default function Fees() {
                   </div>
 
                   <p className="class-fees-count">Status: {fee.status}</p>
-                  {configClass && hasEditPermission && <FeeClassRateEditor key={`${fee.id}-${configClass.id}-${JSON.stringify(fee.classIds)}-${JSON.stringify(fee.classRates)}`} fee={fee} classroom={configClass} onSave={(assigned,rate,starts)=>saveClassRate(fee,assigned,rate,starts)}/>}
+                  {configClass && hasEditPermission && <FeeClassRateEditor key={`${fee.id}-${configClass.id}-${JSON.stringify(fee.classIds)}-${JSON.stringify(fee.classRates)}`} fee={fee} classroom={configClass} onSave={(assigned,rate,starts,year)=>saveClassRate(fee,assigned,rate,starts,year)}/>}
                   {/* Actions footer */}
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', borderTop: '1px solid var(--border)', paddingTop: '12px', marginTop: '10px' }}>
                     {hasEditPermission && (
@@ -1612,7 +1624,7 @@ export default function Fees() {
                             />
                             <span>{cls.name} - Section {cls.section} ({cls.classCode})</span>
                             {isChecked && <input type="number" min="0" step="0.01" className="form-input" style={{maxWidth:130}} aria-label={`Rate for ${cls.name} ${cls.section}`} placeholder={`Base ${feeForm.amount || 0}`} value={feeForm.classRates?.[cls.id] ?? ''} onChange={event => setFeeForm({...feeForm,classRates:{...feeForm.classRates,[cls.id]:event.target.value}})} />}
-                            {isChecked && <span>Starts ({academicBillingYears().active})<input type="date" className="form-input" aria-label={`Activation date for ${cls.name} ${cls.section}`} required={feeForm.frequency==='Monthly'} value={feeForm.classStarts?.[cls.id]?.[academicBillingYears().active] || ''} onChange={event=>setFeeForm({...feeForm,classStarts:{...feeForm.classStarts,[cls.id]:{...feeForm.classStarts?.[cls.id],[academicBillingYears().active]:event.target.value}}})}/></span>}
+                            {isChecked && <span>Starts ({feeForm.activationYear})<input type="date" min={academicYearRange(feeForm.activationYear).start} max={academicYearRange(feeForm.activationYear).end} className="form-input" aria-label={`Activation date for ${cls.name} ${cls.section}`} required={feeForm.frequency==='Monthly'} value={feeForm.classStarts?.[cls.id]?.[feeForm.activationYear] || ''} onChange={event=>setFeeForm({...feeForm,classStarts:{...feeForm.classStarts,[cls.id]:{...feeForm.classStarts?.[cls.id],[feeForm.activationYear]:event.target.value}}})}/></span>}
 
                           </label>
                         )

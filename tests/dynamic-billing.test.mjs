@@ -211,3 +211,16 @@ test('monthly activation handles leap February and yearly fees cannot multiply',
   assert.equal(coverage.remaining,12)
   assert.throws(()=>billingWindow('Yearly','2026-05-05',2),/exactly one unit/)
 })
+
+
+test('fee activation accepts only dates inside the explicitly configured active year', async()=>{
+  const {activationDateError}=await import('../lib/academicBilling.js')
+  const range={start:'2026-04-15',end:'2027-04-14'}
+  assert.equal(activationDateError(range.start,'2026–2027','2026–2027',range),'')
+  assert.equal(activationDateError(range.end,'2026–2027','2026–2027',range),'')
+  assert.match(activationDateError('2026-04-14','2026–2027','2026–2027',range),/between/)
+  assert.match(activationDateError('2027-04-15','2026–2027','2026–2027',range),/between/)
+  assert.match(activationDateError('2026-05-01','2025–2026','2026–2027',range),/active academic year/)
+  assert.match(activationDateError('2026-02-30','2026–2027','2026–2027',range),/between/)
+  assert.match(activationDateError('2026-05-01','2026–2027','2026–2027',{}),/Settings/)
+})

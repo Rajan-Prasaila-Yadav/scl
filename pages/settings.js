@@ -1,3 +1,4 @@
+import AcademicYearDates from '../components/AcademicYearDates'
 import Dialog from '../components/Dialog'
 import { getRaw, setRaw } from '../lib/storage'
 import { BrandingEditor, EmergencyContacts, ComplianceEditor } from '../components/SettingsRecords'
@@ -266,6 +267,7 @@ export default function Settings(){
                     </button>
                   </div>
                 </div>
+                <AcademicYearDates key={academicYear} year={academicYear}/>
                 {showAddYearForm && (
                   <div className="form-group" style={{gridColumn:'1/-1', background:'var(--bg2)', padding:'14px 18px', borderRadius:'var(--radius-sm)', border:'1px solid var(--border)', marginTop:6}}>
                     <label style={{fontSize:11, color:'var(--t2)', textTransform:'uppercase', fontWeight:600}}>Add Academic Year</label>
