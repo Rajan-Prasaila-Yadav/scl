@@ -179,3 +179,35 @@ test('issued class snapshots survive student class changes and zero waivers do n
  assert.equal(issued.invoices[0].lines[0].rate,120)
  assert.equal(issued.invoices[0].lines[0].concession.reason,'Scholarship')
 })
+
+test('class activation reserves twelve calendar months and rejects spill into next class year', async()=>{
+  const {monthlyCoverage}=await import('../lib/billing.js')
+  const configured={...fee,amount:500,classRates:{2:500},classStarts:{2:{'2026–2027':'2026-02-02'}}}
+  const request={...form,academicYear:'2026–2027',start:'2026-02-25',quantity:6}
+  const bill=buildBillingPreview([student],[configured],request).invoices[0]
+  assert.equal(bill.amount,3000)
+  assert.equal(bill.lines[0].periodStart,'2026-02-01T00:00')
+  assert.equal(bill.lines[0].periodEnd,'2026-08-01T00:00')
+  const paid={...student,payments:[{id:1,amount:3000,amountPaid:3000,status:'paid',feesBreakdown:bill.lines}]}
+  const coverage=monthlyCoverage(paid,configured,'2026–2027')
+  assert.equal(coverage.paid,6)
+  assert.equal(coverage.remaining,6)
+  assert.equal(coverage.nextStart,'2026-08-01')
+  assert.throws(()=>buildBillingPreview([paid],[configured],{...request,start:coverage.nextStart,quantity:10}),/only 6 unbilled months/)
+  assert.equal(buildBillingPreview([paid],[configured],{...request,start:coverage.nextStart,quantity:6}).total,3000)
+  const partial={...paid,payments:[{...paid.payments[0],status:'partial',amountPaid:1000}]}
+  assert.equal(monthlyCoverage(partial,configured,'2026–2027').paid,0)
+  assert.equal(monthlyCoverage(partial,configured,'2026–2027').billed,6)
+  assert.equal(monthlyCoverage(partial,configured,'2026–2027').remaining,6)
+  assert.equal(monthlyCoverage(paid,configured,'2027–2028'),null)
+})
+
+test('monthly activation handles leap February and yearly fees cannot multiply', async()=>{
+  const {monthlyCoverage}=await import('../lib/billing.js')
+  const configured={...fee,classStarts:{2:{leap:'2024-02-29'}}}
+  const coverage=monthlyCoverage(student,configured,'leap')
+  assert.equal(coverage.start,'2024-02-01T00:00')
+  assert.equal(coverage.end,'2025-02-01T00:00')
+  assert.equal(coverage.remaining,12)
+  assert.throws(()=>billingWindow('Yearly','2026-05-05',2),/exactly one unit/)
+})
