@@ -51,3 +51,5 @@ Verify the reported deployment when its URL is supplied. Review the backend plan
 ## Local feature update
 
 See [dynamic academics and fees](docs/DYNAMIC-ACADEMICS-AND-FEES.md) for class/teacher assignment, billing rules and payer relationship management. These changes have not been pushed or deployed. The frozen release remains unchanged.
+
+Academic-calendar update (16 October 2026): academic-year settings and fee billing now support AD and Nepali BS calendars with custom boundaries. BS monthly/yearly arithmetic and invoice period snapshots are implemented locally. Unrelated modules are not yet converted to calendar-aware inputs. See the dynamic academics and fees guide for supported years, migration behavior and verification.

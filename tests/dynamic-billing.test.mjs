@@ -224,3 +224,26 @@ test('fee activation accepts only dates inside the explicitly configured active 
   assert.match(activationDateError('2026-02-30','2026–2027','2026–2027',range),/between/)
   assert.match(activationDateError('2026-05-01','2026–2027','2026–2027',{}),/Settings/)
 })
+
+
+test('Nepali calendar converts real dates and bills BS months without Gregorian drift', async()=>{
+  const {fromCalendar,toCalendar,calendarMonthStart}=await import('../lib/calendar.js')
+  assert.equal(fromCalendar('2083-01-01','BS'),'2026-04-14')
+  assert.equal(toCalendar('2026-04-14','BS'),'2083-01-01')
+  for(let month=1;month<=12;month++) {
+    const bs=`2083-${String(month).padStart(2,'0')}-15`
+    assert.equal(toCalendar(fromCalendar(bs,'BS'),'BS'),bs)
+  }
+  assert.throws(()=>fromCalendar('2083-13-01','BS'))
+  assert.throws(()=>fromCalendar('2083-01-40','BS'))
+  assert.throws(()=>fromCalendar('2100-01-01','BS'))
+  const start=fromCalendar('2083-01-25','BS')
+  const window=billingWindow('Monthly',start,6,'BS')
+  assert.equal(toCalendar(window.start.slice(0,10),'BS'),'2083-01-01')
+  assert.equal(toCalendar(window.end.slice(0,10),'BS'),'2083-07-01')
+  assert.equal(window.calendar,'BS')
+  assert.equal(calendarMonthStart(start,12,'BS'),fromCalendar('2084-01-01','BS'))
+  assert.equal(billingWindow('Monthly','2026-04-25',6,'AD').end,'2026-10-01T00:00')
+  const yearly=billingWindow('Yearly',start,1,'BS')
+  assert.equal(toCalendar(yearly.end.slice(0,10),'BS'),'2084-01-01')
+})

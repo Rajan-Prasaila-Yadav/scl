@@ -1,3 +1,4 @@
+import {academicYearRange,academicRangeError} from '../lib/academicBilling'
 import AcademicYearDates from '../components/AcademicYearDates'
 import Dialog from '../components/Dialog'
 import { getRaw, setRaw } from '../lib/storage'
@@ -128,12 +129,15 @@ export default function Settings(){
   }
 
   const handleAcademicYearChange = (val) => {
+    if(!requirePermission('edit','Settings')) return
+    const error=academicRangeError(academicYearRange(val)); if(error) {showToastMsg(error,'error');return}
+    if(!setRaw('academicYear', val)) return
     setAcademicYear(val)
-    setRaw('academicYear', val)
     window.dispatchEvent(new Event('academicYearChanged'))
   }
 
   const handleAddAcademicYear = () => {
+    if(!requirePermission('edit','Settings')) return
     const cleanInput = newYearInput.trim()
     if (!cleanInput) return
     const pattern = /^\d{4}[–-]\d{4}$/
@@ -147,8 +151,8 @@ export default function Settings(){
       return
     }
     const updated = [...academicYears, formatted].sort()
+    if(!setRaw('academicYears', JSON.stringify(updated))) return
     setAcademicYears(updated)
-    setRaw('academicYears', JSON.stringify(updated))
     setNewYearInput('')
     setShowAddYearForm(false)
     showToastMsg(`Academic year ${formatted} added!`, 'success')

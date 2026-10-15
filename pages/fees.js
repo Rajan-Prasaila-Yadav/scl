@@ -1,3 +1,5 @@
+import {calendarDateLabel} from '../lib/calendar'
+import CalendarDateInput from '../components/CalendarDateInput'
 import { academicBillingYears, academicYearRange, activationDateError, invoiceYear } from '../lib/academicBilling'
 import { billingToday, validBillingDate, invoiceTiming, matchesInvoiceStatus } from '../lib/invoiceTiming'
 import useBillingToday from '../components/useBillingToday'
@@ -1385,7 +1387,7 @@ export default function Fees() {
                         return (
                           <tr key={idx}>
                             <td style={{ textAlign: 'center' }}>{idx + 1}</td>
-                            <td><strong>{details.name}</strong>{feeItem.concession && typeof feeItem.concession==='object' && <div style={{fontSize:10}}>Student adjustment: {adjustmentLabel(feeItem.concession.mode,feeItem.concession.value)} {feeItem.concession.reason || ''}</div>}{feeItem.periodStart && <div style={{fontSize:11}}>From {billingPeriodText(feeItem.periodStart)} to {billingPeriodText(feeItem.periodEnd)} (end exclusive)</div>}</td>
+                            <td><strong>{details.name}</strong>{feeItem.concession && typeof feeItem.concession==='object' && <div style={{fontSize:10}}>Student adjustment: {adjustmentLabel(feeItem.concession.mode,feeItem.concession.value)} {feeItem.concession.reason || ''}</div>}{feeItem.periodStart && <div style={{fontSize:11}}>From {calendarDateLabel(feeItem.periodStart,feeItem.calendar)} to {calendarDateLabel(feeItem.periodEnd,feeItem.calendar)} (end exclusive)</div>}</td>
                             <td>{details.frequency}</td>
                             <td style={{ textAlign: 'right' }}>{details.rate.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                             <td style={{ textAlign: 'center' }}>{details.qty}</td>
@@ -1624,7 +1626,7 @@ export default function Fees() {
                             />
                             <span>{cls.name} - Section {cls.section} ({cls.classCode})</span>
                             {isChecked && <input type="number" min="0" step="0.01" className="form-input" style={{maxWidth:130}} aria-label={`Rate for ${cls.name} ${cls.section}`} placeholder={`Base ${feeForm.amount || 0}`} value={feeForm.classRates?.[cls.id] ?? ''} onChange={event => setFeeForm({...feeForm,classRates:{...feeForm.classRates,[cls.id]:event.target.value}})} />}
-                            {isChecked && <span>Starts ({feeForm.activationYear})<input type="date" min={academicYearRange(feeForm.activationYear).start} max={academicYearRange(feeForm.activationYear).end} className="form-input" aria-label={`Activation date for ${cls.name} ${cls.section}`} required={feeForm.frequency==='Monthly'} value={feeForm.classStarts?.[cls.id]?.[feeForm.activationYear] || ''} onChange={event=>setFeeForm({...feeForm,classStarts:{...feeForm.classStarts,[cls.id]:{...feeForm.classStarts?.[cls.id],[feeForm.activationYear]:event.target.value}}})}/></span>}
+                            {isChecked && <span>Starts ({feeForm.activationYear})<CalendarDateInput calendar={academicYearRange(feeForm.activationYear).calendar} min={academicYearRange(feeForm.activationYear).start} max={academicYearRange(feeForm.activationYear).end} className="form-input" aria-label={`Activation date for ${cls.name} ${cls.section}`} required={feeForm.frequency==='Monthly'} value={feeForm.classStarts?.[cls.id]?.[feeForm.activationYear] || ''} onChange={value=>setFeeForm({...feeForm,classStarts:{...feeForm.classStarts,[cls.id]:{...feeForm.classStarts?.[cls.id],[feeForm.activationYear]:value}}})}/></span>}
 
                           </label>
                         )
