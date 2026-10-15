@@ -141,3 +141,41 @@ test('mixed daily weekly and hourly items multiply their own quantities',()=>{
   assert.equal(preview.total,85)
   assert.equal(preview.invoices[0].lines[2].periodEnd,'2026-10-12T10:30')
 })
+
+test('student concessions support fixed percent waiver and increases without changing issued rates',async()=>{
+ const {effectiveFeeRate}=await import('../lib/feeLedger.js')
+ const base={id:1,amount:100,classRates:{2:200}}
+ const rate=(mode,value)=>effectiveFeeRate(base,2,{1:{mode,value}})
+ assert.equal(rate('discountPercent',25),150)
+ assert.equal(rate('discountFixed',30),170)
+ assert.equal(rate('increasePercent',10),220)
+ assert.equal(rate('increaseFixed',50),250)
+ assert.equal(rate('waiver',0),0)
+ assert.equal(rate('rate',99),99)
+ assert.ok(Number.isNaN(rate('discountPercent',101)))
+ assert.ok(Number.isNaN(rate('discountFixed',201)))
+ assert.equal(effectiveFeeRate(base,2,{1:0}),0)
+})
+
+test('penalties calculate on discounted subtotal and freeze across installments',async()=>{
+ const {recordInstallment}=await import('../lib/feeLedger.js')
+ const terms=paymentTotals(1000,{discountType:'customPercent',customDiscount:10,taxType:'customPercent',customTax:13,penaltyType:'customAmount',customPenalty:50})
+ assert.equal(terms.grandTotal,1067)
+ assert.equal(terms.penalty,50)
+ assert.equal(paymentTotals(1000,{penaltyType:'customPercent',customPenalty:5}).grandTotal,1050)
+ assert.ok(paymentTotals(1000,{penaltyType:'customPercent',customPenalty:101}).error)
+ const partial=recordInstallment({amount:1000,amountPaid:0,status:'pending'},500,terms,{id:1})
+ const paid=recordInstallment(partial,567,{...terms,penalty:900,grandTotal:2000},{id:2})
+ assert.equal(paid.penaltyAmount,50)
+ assert.equal(paid.totalDue,1067)
+ assert.equal(paid.status,'paid')
+})
+
+test('issued class snapshots survive student class changes and zero waivers do not invent payment receipts',async()=>{
+ const {invoiceRows,collectionEntries}=await import('../lib/feeLedger.js')
+ assert.equal(invoiceRows([{id:1,classId:9,payments:[{classId:2,amount:10}]}])[0].classId,2)
+ assert.deepEqual(collectionEntries({status:'paid',amount:0,amountPaid:0}),[])
+ const issued=buildBillingPreview([{...student,feeOverrides:{10:{mode:'discountPercent',value:20,reason:'Scholarship'}}}],[fee],form)
+ assert.equal(issued.invoices[0].lines[0].rate,120)
+ assert.equal(issued.invoices[0].lines[0].concession.reason,'Scholarship')
+})

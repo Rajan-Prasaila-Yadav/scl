@@ -1,6 +1,6 @@
 # Dynamic academics and fees
 
-Updated: 11 October 2026. Implemented in the browser-local prototype on feature/dynamic-academics-and-fees. No backend or public deployment is included.
+Updated: 15 October 2026. Implemented in the browser-local prototype on feature/dynamic-academics-and-fees. No backend or public deployment is included.
 
 ## Subjects and timetable
 
@@ -150,3 +150,22 @@ Timing uses the Nepal calendar date. An outstanding invoice becomes overdue the 
 Legacy overdue records without a deadline remain labeled Overdue (legacy; due date not recorded), without an invented day count. This feature does not add reminders, automatic late fees or post-issue due-date editing.
 
 Verification: source checks, 31 tests and production build passed. Tests cover valid/leap dates, seven-day defaults across a year boundary, due-today behavior, late partial payments, settled balances and undated legacy invoices. Browser testing saved an invoice due 2026-09-10, collected 2000 of 5150, and verified that the overdue filter displayed both Partially paid and Overdue with 32 days overdue and 3150 balance on 2026-10-12. Default future due-date display was also checked. Local only; not pushed or deployed.
+
+## Student concessions and academic-year billing — 15 October 2026
+
+Use this workflow:
+
+1. Fee Management → Fee Configurator: create fee definitions and frequencies, assign classes and set class-specific rates.
+2. Students → edit student → Fee Customizations: inherit the class rate, set a custom rate, apply a percentage/fixed concession or increase, or fully waive a fee. An optional reason/reference is saved. The effective per-unit rate is shown before saving. These changes affect future bills, not issued invoices.
+3. Fee Management: select academic year, class and student, then Generate Invoices. These selections carry into the dedicated bill builder. Choose the actual periods and quantities for each fee and review existing paid, pending and partially paid bills before generating.
+4. Review bill discount, tax and penalty, each supporting percentage or fixed amounts. Student concessions are already reflected in item rates. Additional bill discount reduces the subtotal; percentage tax and penalty both use that discounted subtotal. Penalty is added after tax and is not itself taxed. Amounts round to two decimals.
+5. Generate the invoice, then collect all or part of its balance. The shared collection form records payer name, an explicit relationship and collector identity. Custom relationships are saved for future choices and can be managed through the existing relationship editor; generic Other is not accepted as the recorded relationship.
+6. Review the same invoices from fee management, class fee ledgers and student fee statements. Student statements include balances by academic year and individual payment history with collector names. Fee Management summary cards follow year/class/student filters.
+
+Invoice line items snapshot the applicable concessions. Bill-level adjustments explicitly selected at issuance are frozen with the invoice. If no adjustment is selected when issuing, the existing first-collection adjustment flow remains available; after the first collection those terms are frozen for later installments. A zero-total invoice is settled without recording a fictitious money receipt. Already-billed one-time fees and overlapping recurring periods remain excluded from new bills, including when the academic-year label changes.
+
+The invoice includes student/admission/class details, academic year, date-only fee periods, issue/due dates, subtotal, discount, tax, penalty, totals in figures/words, collected amount and balance. Issue/payment timestamps retain their times. School contact details come from Settings. Blank official stamp/seal and fee collector signature spaces support physical signing; no official stamp or digital signature is fabricated.
+
+Academic years come from Settings. Existing invoices without year metadata are shown as Unassigned legacy. The year selector is invoice metadata and reporting scope, not a historical enrollment engine: new bills still use the student's current class and current fee configuration. For back-year obligations, select the intended year and actual fee periods and review rates explicitly. Yearly frequency still uses calendar-year boundaries. No automated arrears migration, enrollment history reconstruction, reminders, backend authorization or scheduled penalties are implemented.
+
+Verification: npm run validate passed source checks, all 34 regression tests and the production build. New tests cover concession/increase/waiver calculations, penalty calculation and installment freezing, preserved invoice class snapshots, concession line snapshots and zero-payment receipt suppression. In an isolated browser demo, a 25% tuition concession and full lab waiver produced a 3525 subtotal; 13% tax and a fixed 100 penalty produced 4083.25. Collecting 1000 retained the terms and showed a 3083.25 balance. The final build also retained selected year/class/student when opening the bill builder. Physical printing and every role/device combination were not exhaustively tested. Changes are local; not pushed or deployed.

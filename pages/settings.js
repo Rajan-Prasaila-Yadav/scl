@@ -160,7 +160,7 @@ export default function Settings(){
           <div className="settings-header">
             <div>
               <h1>School Settings</h1>
-              <p>Manage your school information, branding, preferences &amp; compliance. Academic year is a display label; records are not partitioned by session.</p>
+              <p>Manage your school information, branding, preferences &amp; compliance. New fee invoices record the selected academic year. Other academic records are not yet partitioned by session.</p>
             </div>
             <div className="settings-actions">
               <button className="btn btn-ghost btn-sm" onClick={() => setShowPreview(true)}>

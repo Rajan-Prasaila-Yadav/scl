@@ -1,3 +1,4 @@
+import { academicBillingYears, invoiceYear } from '../lib/academicBilling'
 import { billingToday, validBillingDate, invoiceTiming, matchesInvoiceStatus } from '../lib/invoiceTiming'
 import useBillingToday from '../components/useBillingToday'
 import { invoiceAmount, invoiceBalance, invoiceDue, recordInstallment } from '../lib/feeLedger'
@@ -6,9 +7,9 @@ import Link from 'next/link'
 import FeeClassRateEditor from '../components/FeeClassRateEditor'
 import { INITIAL_FEES } from '../lib/feeData'
 import { getRaw } from '../lib/storage'
-import { currencySymbol } from '../lib/schoolConfig'
+import { currencySymbol, schoolName, schoolSettings } from '../lib/schoolConfig'
 import { requirePermission } from '../lib/permissions'
-import { billingPeriodText, BILLING_FREQUENCIES, buildBillingPreview, paymentTotals, relationshipError, normalizeRelationship } from '../lib/billing'
+import { adjustmentLabel, billingPeriodText, BILLING_FREQUENCIES, buildBillingPreview, paymentTotals, relationshipError, normalizeRelationship } from '../lib/billing'
 import BillingGenerator from '../components/BillingGenerator'
 import PayerRelationships from '../components/PayerRelationships'
 import Dialog from '../components/Dialog'
@@ -117,6 +118,8 @@ export default function Fees() {
 
   // Filters State
   const [searchQuery, setSearchQuery] = useState('')
+  const [academicFilter,setAcademicFilter]=useState('all')
+  const [studentFilter,setStudentFilter]=useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
   const [classFilter, setClassFilter] = useState('all')
   const [sortBy, setSortBy] = useState('latest')
@@ -230,8 +233,8 @@ export default function Fees() {
           studentId: student.id,
           studentName: student.name,
           admissionNo: student.admissionNo || '',
-          classId: student.classId,
-          className,
+          classId: p.classId ?? student.classId,
+          className: p.className || className,
           defaultGuardian: guardian,
           // Calculate dynamic invoice amount or fallback
           invoiceAmount: invoiceAmount(p)
@@ -243,7 +246,10 @@ export default function Fees() {
 
   const scopedTransactions = allTransactions.filter(t =>
     (!router.query.studentId || String(t.studentId) === router.query.studentId) &&
-    (!router.query.collectionClass || String(t.classId) === router.query.collectionClass))
+    (!router.query.collectionClass || String(t.classId) === router.query.collectionClass) &&
+    (academicFilter==='all' || invoiceYear(t)===academicFilter) &&
+    (classFilter==='all' || String(t.classId)===String(classFilter)) &&
+    (studentFilter==='all' || String(t.studentId)===studentFilter))
   const originStudent = students.find(s => String(s.id) === router.query.fromStudent)
   // Overview metrics
   const stats = useMemo(() => {
@@ -273,6 +279,8 @@ export default function Fees() {
     return scopedTransactions.filter((t) => {
       if (router.query.invoice && t.invoiceNo !== router.query.invoice) return false
       // 1. Status Filter
+      if (academicFilter!=='all' && invoiceYear(t)!==academicFilter) return false
+      if (studentFilter!=='all' && String(t.studentId)!==studentFilter) return false
       if (!matchesInvoiceStatus(t,statusFilter,billingDay)) return false
       // 2. Class Filter
       if (classFilter !== 'all' && String(t.classId) !== String(classFilter)) return false
@@ -293,15 +301,15 @@ export default function Fees() {
       if (sortBy === 'studentName') return a.studentName.localeCompare(b.studentName)
       return (b.id || 0) - (a.id || 0)
     })
-  }, [router.query.invoice, scopedTransactions, searchQuery, statusFilter, classFilter, sortBy, billingDay])
+  }, [router.query.invoice, scopedTransactions, searchQuery, statusFilter, classFilter, sortBy, billingDay, academicFilter, studentFilter])
 
   // Real-time calculations for recording payment
   const calculatedTotals = useMemo(() => {
     if (!selectedTransaction) return { subtotal: 0, discount: 0, tax: 0, grandTotal: 0, words: '' }
     const subtotal = selectedTransaction.invoiceAmount || 0
-    const totals = selectedTransaction.totalDue !== undefined ? {subtotal, discount:selectedTransaction.discountAmount || 0, tax:selectedTransaction.taxAmount || 0, grandTotal:selectedTransaction.totalDue, error:''} : paymentTotals(subtotal, paymentForm)
+    const totals = selectedTransaction.totalDue !== undefined ? {subtotal, discount:selectedTransaction.discountAmount || 0, tax:selectedTransaction.taxAmount || 0, grandTotal:selectedTransaction.totalDue, penalty:selectedTransaction.penaltyAmount || 0, error:''} : paymentTotals(subtotal, paymentForm)
     return { ...totals, words: numberToWords(totals.grandTotal) }
-  }, [selectedTransaction, paymentForm.discountType, paymentForm.customDiscount, paymentForm.taxType, paymentForm.customTax])
+  }, [selectedTransaction, paymentForm.discountType, paymentForm.customDiscount, paymentForm.taxType, paymentForm.customTax, paymentForm.penaltyType, paymentForm.customPenalty])
 
 
   const handleExportCSV = () => {
@@ -361,7 +369,7 @@ export default function Fees() {
       discountType: 'none',
       customDiscount: '',
       taxType: 'none',
-      customTax: ''
+      customTax: '', penaltyType:'none', customPenalty:''
     })
     setShowPaymentModal(true)
   }
@@ -408,11 +416,12 @@ export default function Fees() {
       finalRelation = payerRelationships.find(rel => rel.toLowerCase() === customRel.toLowerCase()) || customRel
       if (!payerRelationships.some(rel => rel.toLowerCase() === customRel.toLowerCase())) {
         const updatedRels = [...payerRelationships, customRel]
+        if (!writeStoredList('educore.payerRelationships', updatedRels)) return
         setPayerRelationships(updatedRels)
-        writeStoredList('educore.payerRelationships', updatedRels)
       }
     } else {
       finalRelation = paymentForm.relationship
+      if (relationshipError(finalRelation,[])) { showToast('Choose or enter a specific payer relationship.', 'error'); return }
       if (!payerRelationships.includes(finalRelation)) { showToast('Choose an existing relationship or add a specific one.', 'error'); return }
     }
 
@@ -427,8 +436,9 @@ export default function Fees() {
       updatedInvoice = recordInstallment(current, amount, calculatedTotals, {
         id:makeId(), receiptNo:`RCT-${makeId().toString(36).toUpperCase()}`, paymentDate:formattedDate,
         paidBy:paymentForm.payerName.trim(), payerRelation:finalRelation, paymentMode:paymentForm.paymentMode,
-        onlineApp:paymentForm.paymentMode === 'Online' ? finalApp : '', receivedBy:currentUser
+        onlineApp:paymentForm.paymentMode === 'Online' ? finalApp : '', receivedBy:currentUser, collectorName:getCollectorName(currentUser)
       })
+      updatedInvoice.adjustments = current.adjustments || {discountType:paymentForm.discountType,customDiscount:paymentForm.customDiscount,taxType:paymentForm.taxType,customTax:paymentForm.customTax,penaltyType:paymentForm.penaltyType || 'none',customPenalty:paymentForm.customPenalty || ''}
       updatedInvoice.inWords = numberToWords(updatedInvoice.amountPaid)
     } catch (error) {showToast(error.message,'error');return}
     const updatedStudents = students.map(st => st.id === selectedTransaction.studentId ? {...st,payments:st.payments.map(pay => pay.id === selectedTransaction.id ? updatedInvoice : pay)} : st)
@@ -442,18 +452,22 @@ export default function Fees() {
 
   const openBatchGenerate = () => {
     if (!requirePermission('create')) return
-    router.push({pathname:'/fees',query:{...router.query,view:'bill'}},undefined,{shallow:true})
+    router.push({pathname:'/fees',query:{...router.query,view:'bill',...(academicFilter!=='all' && academicFilter!=='Unassigned legacy'?{academicYear:academicFilter}:{}),...(classFilter!=='all'?{classId:classFilter}:{}),...(studentFilter!=='all'?{studentId:studentFilter}:{})}},undefined,{shallow:true})
   }
   const handleRunBatchGenerate = (form) => {
     if (!requirePermission('create')) return
     try {
+      if (!academicBillingYears().years.includes(form.academicYear)) throw new Error('Choose an academic year configured in Settings.')
       if (!validBillingDate(form.dueDate)) throw new Error('Choose a valid payment due date.')
       const preview = buildBillingPreview(students, fees, form)
       if (!preview.invoices.length) { showToast('No new eligible charges to generate.', 'info'); return }
       const updated = students.map(student => {
         const row = preview.invoices.find(item => item.studentId === student.id)
         if (!row) return student
-        const invoice = { id:makeId(), invoiceNo:`SLIP-${new Date().getFullYear()}-${makeId().toString(36).toUpperCase()}`, amount:row.amount, amountPaid:0, issueDate:billingToday(), dueDate:form.dueDate, month:preview.period.label, status:'pending', paymentDate:'—', paidBy:'—', payerRelation:'—', feesBreakdown:row.lines }
+        const terms=paymentTotals(row.amount,form.adjustments || {})
+        if (terms.error) throw new Error(terms.error)
+        const hasAdjustments=['discountType','taxType','penaltyType'].some(key=>form.adjustments?.[key] && form.adjustments[key]!=='none')
+        const invoice = { ...(hasAdjustments ? {totalDue:terms.grandTotal, discountAmount:terms.discount,taxAmount:terms.tax,penaltyAmount:terms.penalty || 0,adjustments:form.adjustments} : {}), id:makeId(), invoiceNo:`SLIP-${new Date().getFullYear()}-${makeId().toString(36).toUpperCase()}`, amount:row.amount, amountPaid:0, academicYear:form.academicYear, classId:student.classId, className:(()=>{const c=classes.find(c=>String(c.id)===String(student.classId));return c ? `${c.name} - Section ${c.section}` : 'Unknown Class'})(), issuedAt:new Date().toISOString(), issueDate:billingToday(), dueDate:form.dueDate, month:preview.period.label, status:terms.grandTotal===0?'paid':'pending', paymentDate:'—', paidBy:'—', payerRelation:'—', feesBreakdown:row.lines }
         return { ...student, payments:[...(student.payments || []),invoice] }
       })
       if (!writeStoredList(STORAGE_KEYS.students, updated)) return
@@ -577,7 +591,7 @@ export default function Fees() {
   }
 
   if (router.query.view === 'bill') return <Layout>
-    {hydrated ? <BillingGenerator initialStudentId={router.query.studentId} initialClassId={router.query.collectionClass || router.query.classId || router.query.fromClass} students={students} classes={classes} fees={fees}
+    {hydrated ? <BillingGenerator initialAcademicYear={router.query.academicYear} initialStudentId={router.query.studentId} initialClassId={router.query.collectionClass || router.query.classId || router.query.fromClass} students={students} classes={classes} fees={fees}
       onClose={() => { const {view,...query}=router.query; router.push({pathname:'/fees',query},undefined,{shallow:true}) }} onGenerate={handleRunBatchGenerate} /> : <p>Loading billing records…</p>}
   </Layout>
 
@@ -713,6 +727,8 @@ export default function Fees() {
           {/* FILTER CONTROL CARD */}
           <div className="roles-table-card academic-list-card" style={{ padding: '16px 20px', marginBottom: '20px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px', alignItems: 'center' }}>
+              <select className="roles-filter" aria-label="Fee academic year" value={academicFilter} onChange={e=>setAcademicFilter(e.target.value)}><option value="all">All academic years</option>{[...new Set([...academicBillingYears().years,...allTransactions.map(invoiceYear)])].map(year=><option key={year}>{year}</option>)}</select>
+              <select className="roles-filter" aria-label="Fee student" value={studentFilter} onChange={e=>setStudentFilter(e.target.value)}><option value="all">All students</option>{students.filter(student=>classFilter==='all'||String(student.classId)===String(classFilter)).map(student=><option key={student.id} value={student.id}>{student.name} · {student.admissionNo}</option>)}</select>
               {/* Search */}
               <div className="roles-search" style={{ margin: 0 }}>
                 <i className="fa-solid fa-magnifying-glass"></i>
@@ -737,7 +753,7 @@ export default function Fees() {
               </select>
 
               {/* Class filter */}
-              <select aria-label="Class Filter" className="roles-filter" style={{ margin: 0, width: '100%' }} value={classFilter} onChange={(e) => setClassFilter(e.target.value)}>
+              <select aria-label="Class Filter" className="roles-filter" style={{ margin: 0, width: '100%' }} value={classFilter} onChange={(e) => {setClassFilter(e.target.value);setStudentFilter('all')}}>
                 <option value="all">All Grade Classes</option>
                 {classes.map((c) => (
                   <option key={c.id} value={c.id}>{c.name} - Section {c.section}</option>
@@ -813,7 +829,7 @@ export default function Fees() {
                             <span style={{ fontSize: '12px', color: 'var(--t2)' }}>{t.className}</span>
                           </td>
                           <td>
-                            <span style={{ fontWeight: 600 }}>{billingPeriodText(t.month)}</span><div className={invoiceTiming(t,billingDay).overdue ? 'invoice-overdue' : 'invoice-due'}>{invoiceTiming(t,billingDay).label}</div>
+                            <div>{invoiceYear(t)}</div><span style={{ fontWeight: 600 }}>{billingPeriodText(t.month)}</span><div className={invoiceTiming(t,billingDay).overdue ? 'invoice-overdue' : 'invoice-due'}>{invoiceTiming(t,billingDay).label}</div>
                           </td>
                           <td>
                             <strong style={{ color: 'var(--t1)' }}>{currencySymbol()}{t.invoiceAmount.toLocaleString()}</strong><div>Balance: {currencySymbol()}{invoiceBalance(t).toFixed(2)}</div>{Number(t.amountPaid) > 0 && <div style={{fontSize:11,color:'var(--green)'}}>Collected: {currencySymbol()}{Number(t.amountPaid || 0).toFixed(2)}</div>}
@@ -1052,7 +1068,7 @@ export default function Fees() {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span>Billing Period:</span>
-                    <strong style={{ color: 'var(--t1)', marginLeft: 'auto' }}>{billingPeriodText(selectedTransaction.month)}<br/>Payment due: {selectedTransaction.dueDate || 'Not recorded'} · {invoiceTiming(selectedTransaction,billingDay).label}</strong>
+                    <strong style={{ color: 'var(--t1)', marginLeft: 'auto' }}>{invoiceYear(selectedTransaction)}<br/>{billingPeriodText(selectedTransaction.month)}<br/>Payment due: {selectedTransaction.dueDate || 'Not recorded'} · {invoiceTiming(selectedTransaction,billingDay).label}</strong>
                   </div>
                 </div>
 
@@ -1076,7 +1092,7 @@ export default function Fees() {
                     value={paymentForm.relationship || 'Father'} 
                     onChange={(e) => setPaymentForm({ ...paymentForm, relationship: e.target.value })}
                   >
-                    {payerRelationships.map((rel) => (
+                    {payerRelationships.filter(rel=>!relationshipError(rel,[])).map((rel) => (
                       <option key={rel} value={rel}>{rel}</option>
                     ))}
                     <option value="custom">+ Add Custom Relation</option>
@@ -1223,7 +1239,9 @@ export default function Fees() {
                   )}
                 </div>
 
-                <p>Discount is applied before tax. Percentage tax uses the discounted subtotal.</p>
+                <div className="form-group"><label>Penalty</label><select className="form-select" aria-label="Penalty type" disabled={selectedTransaction?.totalDue !== undefined} value={paymentForm.penaltyType || 'none'} onChange={e=>setPaymentForm({...paymentForm,penaltyType:e.target.value})}><option value="none">No penalty</option><option value="customPercent">Penalty (%)</option><option value="customAmount">Penalty (fixed)</option></select>{paymentForm.penaltyType && paymentForm.penaltyType!=='none' && <input className="form-input" aria-label="Penalty value" type="number" min="0" step="0.01" required disabled={selectedTransaction?.totalDue !== undefined} value={paymentForm.customPenalty || ''} onChange={e=>setPaymentForm({...paymentForm,customPenalty:e.target.value})}/>}</div>
+                <p>Discount is applied before tax. Percentage tax and penalty use the discounted subtotal; penalty is added after tax. Adjustments are fixed after the first collection.</p>
+                <p>Penalty: {currencySymbol()}{Number(calculatedTotals.penalty || 0).toFixed(2)}</p>
                 {calculatedTotals.error && <p role="alert">{calculatedTotals.error}</p>}
                 {/* Summary panel */}
                 <div style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '12px 16px', marginBottom: '16px' }}>
@@ -1256,7 +1274,7 @@ export default function Fees() {
                 <div style={{marginBottom:16}}>
                   <p>Already collected: {currencySymbol()}{Number(selectedTransaction.amountPaid || 0).toFixed(2)} · Remaining: {currencySymbol()}{Math.max(0,calculatedTotals.grandTotal-Number(selectedTransaction.amountPaid || 0)).toFixed(2)}</p>
                   <label>Collect now ({currencySymbol()})<input className="form-input" aria-label="Collect now" type="number" min="0" step="0.01" max={Math.max(0,calculatedTotals.grandTotal-Number(selectedTransaction.amountPaid || 0))} placeholder="Leave blank to settle remaining balance" value={collectionAmount} onChange={e=>setCollectionAmount(e.target.value)}/></label>
-                  <small>Discount and tax are fixed after the first payment.</small>
+                  <small>Issued adjustments or the first payment fix discount, tax and penalty for this invoice.</small>
                 </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-ghost" onClick={() => setShowPaymentModal(false)}>Cancel</button>
@@ -1294,9 +1312,9 @@ export default function Fees() {
                 <div className="physical-bill-inner">
                   {/* School Header */}
                   <div style={{ textAlign: 'center', borderBottom: '2px solid #111111', paddingBottom: '12px', marginBottom: '14px' }}>
-                    <h2 className="bill-header-title">EDUCORE ACADEMY</h2>
-                    <p className="bill-subtitle">Kathmandu, Nepal | Phone: +977-1-4444444 | Email: info@educore.edu</p>
-                    <p style={{ fontSize: '9px', color: '#666', margin: '4px 0 0 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>PAN No: 601234567 | Reg No: 4567/080</p>
+                    <h2 className="bill-header-title">{schoolName()}</h2>
+                    <p className="bill-subtitle">{[schoolSettings().field9,schoolSettings().field13,schoolSettings().field18,schoolSettings().field21].filter(Boolean).join(' · ')}</p>
+
                   </div>
 
                   {/* Receipt Tag */}
@@ -1309,7 +1327,7 @@ export default function Fees() {
                     <tbody>
                       <tr>
                         <td><strong>Invoice No:</strong> <span style={{ fontFamily: 'monospace', fontSize: '11.5px' }}>{activeReceipt.invoiceNo}</span></td>
-                        <td><strong>Date:</strong> {activeReceipt.paymentDate && activeReceipt.paymentDate !== '—' ? activeReceipt.paymentDate.split(' ')[0] : '—'}</td>
+                        <td><strong>Issue date:</strong> {activeReceipt.issueDate || (activeReceipt.paymentDate && activeReceipt.paymentDate !== '—' ? activeReceipt.paymentDate.split(' ')[0] : 'Not recorded')}</td>
                       </tr>
                       <tr>
                         <td><strong>Student Name:</strong> {activeReceipt.studentName}</td>
@@ -1317,7 +1335,7 @@ export default function Fees() {
                       </tr>
                       <tr>
                         <td><strong>Class / Section:</strong> {activeReceipt.className}</td>
-                        <td><strong>Billing Period:</strong> {billingPeriodText(activeReceipt.month)}<div><strong>Payment due:</strong> {activeReceipt.dueDate || 'Not recorded'}</div><div>{invoiceTiming(activeReceipt,billingDay).label}</div></td>
+                        <td><strong>Academic year:</strong> {invoiceYear(activeReceipt)}<br/><strong>Billing Period:</strong> {billingPeriodText(activeReceipt.month)}<div><strong>Payment due:</strong> {activeReceipt.dueDate || 'Not recorded'}</div><div>{invoiceTiming(activeReceipt,billingDay).label}</div></td>
                       </tr>
                       <tr>
                         <td><strong>Payer Name:</strong> {activeReceipt.paidBy} ({activeReceipt.payerRelation})</td>
@@ -1353,7 +1371,7 @@ export default function Fees() {
                         return (
                           <tr key={idx}>
                             <td style={{ textAlign: 'center' }}>{idx + 1}</td>
-                            <td><strong>{details.name}</strong>{feeItem.periodStart && <div style={{fontSize:11}}>From {billingPeriodText(feeItem.periodStart)} to {billingPeriodText(feeItem.periodEnd)} (end exclusive)</div>}</td>
+                            <td><strong>{details.name}</strong>{feeItem.concession && typeof feeItem.concession==='object' && <div style={{fontSize:10}}>Student adjustment: {adjustmentLabel(feeItem.concession.mode,feeItem.concession.value)} {feeItem.concession.reason || ''}</div>}{feeItem.periodStart && <div style={{fontSize:11}}>From {billingPeriodText(feeItem.periodStart)} to {billingPeriodText(feeItem.periodEnd)} (end exclusive)</div>}</td>
                             <td>{details.frequency}</td>
                             <td style={{ textAlign: 'right' }}>{details.rate.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                             <td style={{ textAlign: 'center' }}>{details.qty}</td>
@@ -1367,6 +1385,7 @@ export default function Fees() {
                         const subtotal = activeReceipt.amount !== undefined ? activeReceipt.amount : (activeReceipt.amountPaid || 0)
                         const discount = activeReceipt.discountAmount || 0
                         const tax = activeReceipt.taxAmount || 0
+                        const penalty = activeReceipt.penaltyAmount || 0
                         const grandTotal = invoiceDue(activeReceipt)
                         const collected = Number(activeReceipt.amountPaid || 0)
                         const balance = invoiceBalance(activeReceipt)
@@ -1393,6 +1412,7 @@ export default function Fees() {
                                 <td style={{ textAlign: 'right', color: 'var(--accent)', fontWeight: 'bold' }}>+{currencySymbol()}{tax.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                               </tr>
                             )}
+                            {penalty>0 && <tr><td colSpan={5} style={{textAlign:'right'}}>Penalty:</td><td>{currencySymbol()}{penalty.toFixed(2)}</td></tr>}
                             <tr className="total-row" style={{ borderTop: '2px solid #111111' }}>
                               <td colSpan={4} style={{ border: 'none' }}></td>
                               <td style={{ textAlign: 'right', fontWeight: '800', fontSize: '12px' }}>Invoice Total:</td>
@@ -1413,8 +1433,11 @@ export default function Fees() {
                     </tbody>
                   </table>
 
+                  {activeReceipt.adjustments && <p style={{fontSize:10}}>Adjustment basis: {['discount','tax','penalty'].filter(kind=>activeReceipt.adjustments[`${kind}Type`] && activeReceipt.adjustments[`${kind}Type`]!=='none').map(kind=>`${kind}: ${adjustmentLabel(activeReceipt.adjustments[`${kind}Type`],activeReceipt.adjustments[`custom${kind.charAt(0).toUpperCase()+kind.slice(1)}`])}`).join(' · ') || 'None'}</p>}
                   <div style={{margin:'16px 0',fontWeight:800}}>Payment status: {activeReceipt.status === 'paid' ? 'PAID IN FULL' : activeReceipt.status === 'partial' ? 'PARTIALLY PAID' : 'UNPAID'}</div>
-                  {activeReceipt.collections?.length > 0 && <div><h4>Payment history</h4><table className="bill-table"><thead><tr><th>Receipt</th><th>Date</th><th>Payer / relation</th><th>Method</th><th>Paid</th><th>Balance after</th></tr></thead><tbody>{activeReceipt.collections.map(entry=><tr key={entry.id}><td>{entry.receiptNo}</td><td>{entry.paymentDate}</td><td>{entry.paidBy} ({entry.payerRelation})</td><td>{entry.paymentMode} {entry.onlineApp}</td><td>{currencySymbol()}{entry.amountPaid.toFixed(2)}</td><td>{currencySymbol()}{entry.balanceAfter.toFixed(2)}</td></tr>)}</tbody></table></div>}
+                  {activeReceipt.collections?.length > 0 && <div><h4>Payment history</h4><table className="bill-table"><thead><tr><th>Receipt</th><th>Date</th><th>Payer / relation</th><th>Method / collector</th><th>Paid</th><th>Balance after</th></tr></thead><tbody>{activeReceipt.collections.map(entry=><tr key={entry.id}><td>{entry.receiptNo}</td><td>{entry.paymentDate}</td><td>{entry.paidBy} ({entry.payerRelation})</td><td>{entry.paymentMode} {entry.onlineApp}<br/>{entry.collectorName || getCollectorName(entry.receivedBy)}</td><td>{currencySymbol()}{entry.amountPaid.toFixed(2)}</td><td>{currencySymbol()}{entry.balanceAfter.toFixed(2)}</td></tr>)}</tbody></table></div>}
+                  <p style={{fontSize:10}}>Issued at: {activeReceipt.issuedAt ? new Date(activeReceipt.issuedAt).toLocaleString('en-GB',{timeZone:'Asia/Kathmandu'}) : 'Not recorded'} (Nepal time)</p>
+                  <div style={{border:'1px dashed #777',padding:18,textAlign:'center',margin:'20px 0'}}>Official school stamp / seal</div>
                   {/* Signatures */}
                   <div className="bill-signatures-container">
                     <div className="bill-signature-block">
@@ -1424,14 +1447,14 @@ export default function Fees() {
                     </div>
                     <div className="bill-signature-block">
                       <div className="bill-signature-line"></div>
-                      <div className="bill-signature-label">Authorized Representative</div>
+                      <div className="bill-signature-label">Fee collector signature</div>
                       <div className="bill-signature-sub">Received By: {getCollectorName(activeReceipt.receivedBy)}</div>
                     </div>
                   </div>
 
                   {/* Notes */}
                   <div className="bill-notes">
-                    Note: This is a computer-generated fee collection slip and requires no physical seal. Please keep it safe for future reference.
+                    Please retain this invoice and its payment receipts. Stamp and signatures may be applied by the school.
                   </div>
                 </div>
               </div>

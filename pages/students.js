@@ -238,11 +238,11 @@ export default function Students() {
   }, [selectedStudentId, detailTab])
 
   const handleSaveFeeOverrides = (e) => {
-    e?.preventDefault?.(); if (!requirePermission('edit')) return
+    e?.preventDefault?.(); if (!requirePermission('edit','Fees')) return
 
     e.preventDefault()
     if (!selectedStudent) return
-    if (Object.values(localOverrides).some(value => value !== '' && (!Number.isFinite(Number(value)) || Number(value) < 0))) {showToast('Fee overrides must be nonnegative numbers.', 'error'); return}
+    if (fees.some(fee => !Number.isFinite(effectiveFeeRate(fee,selectedStudent.classId,localOverrides)) || effectiveFeeRate(fee,selectedStudent.classId,localOverrides)<0)) {showToast('Enter valid rates or concessions. Discounts cannot exceed the class rate or 100%.', 'error'); return}
     const updated = students.map(s => s.id === selectedStudent.id ? {...s, feeOverrides:localOverrides} : s)
     if (!writeStoredList(STORAGE_KEYS.students,updated)) return
     setStudents(updated)
@@ -323,15 +323,13 @@ export default function Students() {
     }
 
     const classFees = fees.filter(
-      (f) => f.status === 'active' && (f.classIds || []).includes(selectedStudent.classId)
+      (f) => f.status === 'active' && (f.classIds || []).some(id=>String(id)===String(selectedStudent.classId))
     )
 
     const N = Number(payForm.monthsCount) || 1
 
     const breakdown = classFees.map((f) => {
-      const overrideVal = selectedStudent.feeOverrides && selectedStudent.feeOverrides[f.id] !== undefined 
-        ? selectedStudent.feeOverrides[f.id] 
-        : null
+      const overrideVal = effectiveFeeRate(f,selectedStudent.classId,selectedStudent.feeOverrides)
       const finalRate = overrideVal !== null && overrideVal !== '' ? Number(overrideVal) : f.amount
 
       let computedAmount = finalRate
@@ -2377,7 +2375,7 @@ export default function Students() {
                 </div>
 
                 {(() => {
-                  const classFees = fees.filter(f => f.status === 'active' && (f.classIds || []).includes(selectedStudent.classId))
+                  const classFees = fees.filter(f => f.status === 'active' && (f.classIds || []).some(id=>String(id)===String(selectedStudent.classId)))
                   
                   if (classFees.length === 0) {
                     return (
@@ -2402,7 +2400,8 @@ export default function Students() {
                           </thead>
                           <tbody>
                             {classFees.map((feeItem) => {
-                              const val = localOverrides[feeItem.id] !== undefined ? localOverrides[feeItem.id] : ''
+                              const raw = localOverrides[feeItem.id]
+                              const rule = raw && typeof raw === 'object' ? raw : {mode:raw !== undefined && raw !== '' ? 'rate' : 'inherit',value:raw ?? '',reason:''}
                               return (
                                 <tr key={feeItem.id}>
                                   <td>
@@ -2418,21 +2417,12 @@ export default function Students() {
                                     <strong style={{ color: 'var(--t2)' }}>{currencySymbol()}{effectiveFeeRate(feeItem,selectedStudent.classId)}</strong>
                                   </td>
                                   <td>
-                                    <input aria-label="Val"
-                                      type="number"
-                                      className="form-input"
-                                      style={{ padding: '6px 10px', fontSize: '13px', width: '120px', margin: 0 }}
-                                      placeholder={`Default: ${currencySymbol()}${effectiveFeeRate(feeItem,selectedStudent.classId)}`}
-                                      value={val}
-                                      onChange={(e) => {
-                                        const newVal = e.target.value
-                                        setLocalOverrides(prev => ({
-                                          ...prev,
-                                          [feeItem.id]: newVal === '' ? '' : Number(newVal)
-                                        }))
-                                      }}
-                                      min="0" step="0.01"
-                                    />
+                                    <select className="form-select" aria-label={`${feeItem.name} concession type`} value={rule.mode} onChange={e=>setLocalOverrides(prev=>({...prev,[feeItem.id]:e.target.value==='inherit'?'':{...rule,mode:e.target.value,value:rule.value || 0}}))}>
+                                      <option value="inherit">Use class rate</option><option value="rate">Custom rate</option><option value="discountPercent">Concession (%)</option><option value="discountFixed">Concession (fixed)</option><option value="increasePercent">Increase (%)</option><option value="increaseFixed">Increase (fixed)</option><option value="waiver">Full waiver</option>
+                                    </select>
+                                    {!['inherit','waiver'].includes(rule.mode) && <input className="form-input" aria-label={`${feeItem.name} concession value`} type="number" min="0" step="0.01" required value={rule.value} onChange={e=>setLocalOverrides(prev=>({...prev,[feeItem.id]:{...rule,value:e.target.value}}))}/>}
+                                    {rule.mode!=='inherit' && <input className="form-input" aria-label={`${feeItem.name} concession reason`} placeholder="Reason / scholarship reference" maxLength={200} value={rule.reason || ''} onChange={e=>setLocalOverrides(prev=>({...prev,[feeItem.id]:{...rule,reason:e.target.value}}))}/>}
+                                    <small>Effective rate: {currencySymbol()}{effectiveFeeRate(feeItem,selectedStudent.classId,localOverrides)}</small>
                                   </td>
                                 </tr>
                               )
