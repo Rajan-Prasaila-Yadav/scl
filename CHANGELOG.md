@@ -1,6 +1,18 @@
 # Release notes
 
-## Unreleased — documentation follow-up
+## Feature branch — 2026-10-16
+
+- Dynamic subject/class/teacher assignments and class-aware fee configuration.
+- Dedicated student bill builder, mixed frequencies, duplicate-period protection and monthly remaining coverage.
+- Partial/full collections, individual receipts, student statements, due dates and overdue tracking.
+- Student concessions, custom rates and waivers; bill discounts, taxes and penalties.
+- Configurable AD/BS academic years and activation-date boundaries.
+- Bulk class fee setup plus repaired individual heading and class settings.
+- Refreshed README with verified versions, setup steps, feature workflows and explicit prototype boundaries; included conceptual ERP diagrams.
+- Latest application checks: 41 tests, source checks and production build passed. Browser checks covered heading saves and individual class status persistence. This documentation update did not rerun application checks.
+- These changes do not modify the frozen prototype release. Publishing source does not verify a live deployment.
+
+## Earlier documentation follow-up
 
 - Added docs/backend-planning with database/stack comparison, Nepal region measurements, search design, offline synchronization policy, security/recovery gates, Docker guidance, cost snapshot and staged implementation roadmap.
 - Recorded the configured GitHub remote and owner-reported deployment, explicitly distinguishing them from unverified live hosting details.

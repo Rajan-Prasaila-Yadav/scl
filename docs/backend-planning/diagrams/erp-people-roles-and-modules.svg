@@ -1,0 +1,452 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="2930" viewBox="0 0 2400 2930"><rect width="100%" height="100%" fill="#f3f6fb"/>
+<text x="60" y="36" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="700" fill="#1764a7">EDUCORE / SCHOOL ERP DATA MODEL</text>
+<text x="60" y="77" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="48" font-weight="700" fill="#172942">People, school membership and controlled access</text>
+<text x="60" y="147" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="400" fill="#64748b">Conceptual relationships • Students, parents, teachers, administrators and operational teams • 11 October 2026</text>
+<rect x="60" y="205" width="2280" height="325" rx="22" fill="#142c4b" stroke="#142c4b" stroke-width="2"/>
+<text x="90" y="229" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="24" font-weight="700" fill="#7edcd3">THREE FOUNDATIONS — NOT A ROLL-NUMBER-CENTRED SYSTEM</text>
+<rect x="90" y="282" width="690" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="90" y="282" width="6" height="86" rx="3" fill="#11a89c" stroke="#11a89c" stroke-width="2"/>
+<text x="296.0078125" y="295" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Stable internal identity</text>
+<text x="233.9921875" y="331" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Every person and record has its own unique ID</text>
+<rect x="855" y="282" width="690" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="855" y="282" width="6" height="86" rx="3" fill="#11a89c" stroke="#11a89c" stroke-width="2"/>
+<text x="1079.5" y="295" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">School membership</text>
+<text x="1001.0" y="331" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">One user can belong to more than one school</text>
+<rect x="1620" y="282" width="690" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="1620" y="282" width="6" height="86" rx="3" fill="#11a89c" stroke="#11a89c" stroke-width="2"/>
+<text x="1794.5078125" y="295" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Roles + permissions + scope</text>
+<text x="1788.0" y="331" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">One membership can hold multiple roles</text>
+<text x="90" y="400" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="30" font-weight="700" fill="#ffffff">Roll number belongs to enrollment: school + academic year + class/section.</text>
+<text x="90" y="452" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="400" fill="#d7e5f5">The same roll number may exist in another class or school. Search can use roll, admission ID, name or another permitted reference.</text>
+<text x="60" y="557" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="24" font-weight="400" fill="#536780">ARROWS: 1 : N runs from one to many (zero or more). Repeated entity names refer to the same records.</text>
+<text x="60" y="592" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="24" font-weight="400" fill="#536780">School-owned records are isolated by school. A person record can exist without a login account.</text>
+<rect x="60" y="640" width="744" height="580" rx="20" fill="#ffffff" stroke="#dbe4ef" stroke-width="2"/>
+<rect x="80" y="660" width="46" height="46" rx="12" fill="#1764a7" stroke="#1764a7" stroke-width="2"/>
+<text x="95.0" y="666" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="28" font-weight="700" fill="#ffffff">1</text>
+<text x="143" y="665" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="29" font-weight="700" fill="#172942">School &amp; academic structure</text>
+<rect x="95" y="750" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="95" y="750" width="6" height="86" rx="3" fill="#1764a7" stroke="#1764a7" stroke-width="2"/>
+<text x="199.0" y="763" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">School</text>
+<text x="165.5078125" y="799" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Tenant boundary</text>
+<rect x="479" y="750" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="479" y="750" width="6" height="86" rx="3" fill="#1764a7" stroke="#1764a7" stroke-width="2"/>
+<text x="575.5" y="763" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Campus</text>
+<text x="556.0" y="799" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">School location</text>
+<rect x="95" y="930" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="95" y="930" width="6" height="86" rx="3" fill="#1764a7" stroke="#1764a7" stroke-width="2"/>
+<text x="152.0" y="943" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Academic year</text>
+<text x="153.0" y="979" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">School-specific year</text>
+<rect x="479" y="930" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="479" y="930" width="6" height="86" rx="3" fill="#1764a7" stroke="#1764a7" stroke-width="2"/>
+<text x="538.5" y="943" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Class / section</text>
+<text x="515.0" y="979" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Campus + academic year</text>
+<rect x="95" y="1110" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="95" y="1110" width="6" height="86" rx="3" fill="#1764a7" stroke="#1764a7" stroke-width="2"/>
+<text x="195.0" y="1123" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Subject</text>
+<text x="141.5" y="1159" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">School subject catalog</text>
+<rect x="479" y="1110" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="479" y="1110" width="6" height="86" rx="3" fill="#1764a7" stroke="#1764a7" stroke-width="2"/>
+<text x="526.0" y="1123" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Subject offering</text>
+<text x="518.0" y="1159" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Subject taught to a class</text>
+<polyline points="385,793 479,793" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="479,793 467.2941876694152,798.654551943446 467.2941876694152,787.345448056554" fill="#71839b"/>
+<rect x="403.0" y="761" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="410.0" y="763" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<polyline points="240,836 240,930" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="240,930 234.345448056554,918.2941876694152 245.654551943446,918.2941876694152" fill="#71839b"/>
+<rect x="261.0" y="875" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="268.0" y="877" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<polyline points="624,836 624,930" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="624,930 618.345448056554,918.2941876694152 629.654551943446,918.2941876694152" fill="#71839b"/>
+<rect x="645.0" y="875" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="652.0" y="877" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<polyline points="385,973 479,973" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="479,973 467.2941876694152,978.654551943446 467.2941876694152,967.345448056554" fill="#71839b"/>
+<rect x="403.0" y="941" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="410.0" y="943" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<polyline points="624,1016 624,1110" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="624,1110 618.345448056554,1098.2941876694151 629.654551943446,1098.2941876694151" fill="#71839b"/>
+<rect x="645.0" y="1057" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="652.0" y="1059" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<polyline points="385,1153 479,1153" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="479,1153 467.2941876694152,1158.654551943446 467.2941876694152,1147.345448056554" fill="#71839b"/>
+<rect x="403.0" y="1121" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="410.0" y="1123" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<rect x="828" y="640" width="744" height="580" rx="20" fill="#ffffff" stroke="#dbe4ef" stroke-width="2"/>
+<rect x="848" y="660" width="46" height="46" rx="12" fill="#7b55bc" stroke="#7b55bc" stroke-width="2"/>
+<text x="863.0" y="666" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="28" font-weight="700" fill="#ffffff">2</text>
+<text x="911" y="665" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="29" font-weight="700" fill="#172942">People, accounts &amp; roles</text>
+<rect x="863" y="750" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="863" y="750" width="6" height="86" rx="3" fill="#7b55bc" stroke="#7b55bc" stroke-width="2"/>
+<text x="966.5078125" y="763" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Person</text>
+<text x="891.0" y="799" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Underlying human identity</text>
+<rect x="1247" y="750" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="1247" y="750" width="6" height="86" rx="3" fill="#7b55bc" stroke="#7b55bc" stroke-width="2"/>
+<text x="1313.5" y="763" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">User account</text>
+<text x="1293.5" y="799" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Optional verified login</text>
+<rect x="863" y="930" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="863" y="930" width="6" height="86" rx="3" fill="#7b55bc" stroke="#7b55bc" stroke-width="2"/>
+<text x="967.0" y="943" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">School</text>
+<text x="918.0" y="979" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Membership context</text>
+<rect x="1247" y="930" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="1247" y="930" width="6" height="86" rx="3" fill="#7b55bc" stroke="#7b55bc" stroke-width="2"/>
+<text x="1271.5" y="943" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">School membership</text>
+<text x="1278.0" y="979" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Account + school + status</text>
+<rect x="863" y="1110" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="863" y="1110" width="6" height="86" rx="3" fill="#7b55bc" stroke="#7b55bc" stroke-width="2"/>
+<text x="981.0078125" y="1123" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Role</text>
+<text x="921.5" y="1159" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">School-defined role</text>
+<rect x="1247" y="1110" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="1247" y="1110" width="6" height="86" rx="3" fill="#7b55bc" stroke="#7b55bc" stroke-width="2"/>
+<text x="1288.5" y="1123" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Membership role</text>
+<text x="1281.0" y="1159" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Role assigned to member</text>
+<polyline points="1153,793 1247,793" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="1247,793 1235.2941876694151,798.654551943446 1235.2941876694151,787.345448056554" fill="#71839b"/>
+<rect x="1163.0" y="716" width="74.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="1170.0" y="718" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : 0..1</text>
+<polyline points="1392,836 1392,930" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="1392,930 1386.345448056554,918.2941876694152 1397.654551943446,918.2941876694152" fill="#71839b"/>
+<rect x="1413.0" y="875" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="1420.0" y="877" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<polyline points="1153,973 1247,973" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="1247,973 1235.2941876694151,978.654551943446 1235.2941876694151,967.345448056554" fill="#71839b"/>
+<rect x="1171.0" y="941" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="1178.0" y="943" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<polyline points="1392,1016 1392,1110" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="1392,1110 1386.345448056554,1098.2941876694151 1397.654551943446,1098.2941876694151" fill="#71839b"/>
+<rect x="1413.0" y="1057" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="1420.0" y="1059" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<polyline points="1153,1153 1247,1153" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="1247,1153 1235.2941876694151,1158.654551943446 1235.2941876694151,1147.345448056554" fill="#71839b"/>
+<rect x="1171.0" y="1121" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="1178.0" y="1123" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<rect x="1596" y="640" width="744" height="580" rx="20" fill="#ffffff" stroke="#dbe4ef" stroke-width="2"/>
+<rect x="1616" y="660" width="46" height="46" rx="12" fill="#a75e8b" stroke="#a75e8b" stroke-width="2"/>
+<text x="1631.0" y="666" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="28" font-weight="700" fill="#ffffff">3</text>
+<text x="1679" y="665" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="29" font-weight="700" fill="#172942">Permissions &amp; record scope</text>
+<rect x="1631" y="750" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="1631" y="750" width="6" height="86" rx="3" fill="#a75e8b" stroke="#a75e8b" stroke-width="2"/>
+<text x="1749.0078125" y="763" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Role</text>
+<text x="1673.5" y="799" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Admin / teacher / other</text>
+<rect x="2015" y="750" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="2015" y="750" width="6" height="86" rx="3" fill="#a75e8b" stroke="#a75e8b" stroke-width="2"/>
+<text x="2063.5078125" y="763" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Role permission</text>
+<text x="2095.0" y="799" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Granted action</text>
+<rect x="1631" y="930" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="1631" y="930" width="6" height="86" rx="3" fill="#a75e8b" stroke="#a75e8b" stroke-width="2"/>
+<text x="1710.0078125" y="943" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Permission</text>
+<text x="1703.0" y="979" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Module + action</text>
+<rect x="2015" y="930" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="2015" y="930" width="6" height="86" rx="3" fill="#a75e8b" stroke="#a75e8b" stroke-width="2"/>
+<text x="2050.5" y="943" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Scope assignment</text>
+<text x="2048.4921875" y="979" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Allowed record boundary</text>
+<rect x="1631" y="1110" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="1631" y="1110" width="6" height="86" rx="3" fill="#a75e8b" stroke="#a75e8b" stroke-width="2"/>
+<text x="1672.5" y="1123" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Membership role</text>
+<text x="1667.5" y="1159" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Specific role held by user</text>
+<rect x="2015" y="1110" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="2015" y="1110" width="6" height="86" rx="3" fill="#a75e8b" stroke="#a75e8b" stroke-width="2"/>
+<text x="2083.0" y="1123" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Scope target</text>
+<text x="2056.0" y="1159" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Campus / class / subject</text>
+<polyline points="1921,793 2015,793" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="2015,793 2003.2941876694151,798.654551943446 2003.2941876694151,787.345448056554" fill="#71839b"/>
+<rect x="1939.0" y="761" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="1946.0" y="763" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<polyline points="1776,930 1776,882 2160,882 2160,836" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="2160,836 2165.6545519434458,847.7058123305848 2154.3454480565542,847.7058123305848" fill="#71839b"/>
+<rect x="1912.0" y="849" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="1919.0" y="851" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<polyline points="1776,1110 1776,1064 2160,1064 2160,1016" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="2160,1016 2165.6545519434458,1027.7058123305849 2154.3454480565542,1027.7058123305849" fill="#71839b"/>
+<rect x="1913.0" y="1032" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="1920.0" y="1034" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<polyline points="2242,1110 2242,1016" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="2242,1016 2247.6545519434458,1027.7058123305849 2236.3454480565542,1027.7058123305849" fill="#71839b"/>
+<rect x="2257.0" y="1055" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="2264.0" y="1057" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<rect x="60" y="1244" width="744" height="580" rx="20" fill="#ffffff" stroke="#dbe4ef" stroke-width="2"/>
+<rect x="80" y="1264" width="46" height="46" rx="12" fill="#2a83a1" stroke="#2a83a1" stroke-width="2"/>
+<text x="95.0" y="1270" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="28" font-weight="700" fill="#ffffff">4</text>
+<text x="143" y="1269" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="29" font-weight="700" fill="#172942">Students, families &amp; staff</text>
+<rect x="95" y="1354" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="95" y="1354" width="6" height="86" rx="3" fill="#2a83a1" stroke="#2a83a1" stroke-width="2"/>
+<text x="148.0078125" y="1367" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Student profile</text>
+<text x="170.0078125" y="1403" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Person + school</text>
+<rect x="479" y="1354" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="479" y="1354" width="6" height="86" rx="3" fill="#2a83a1" stroke="#2a83a1" stroke-width="2"/>
+<text x="557.0" y="1367" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Enrollment</text>
+<text x="523.5078125" y="1403" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Year + class + local roll</text>
+<rect x="95" y="1534" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="95" y="1534" width="6" height="86" rx="3" fill="#2a83a1" stroke="#2a83a1" stroke-width="2"/>
+<text x="107.5078125" y="1547" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Student guardian link</text>
+<text x="123.5" y="1583" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Relationship + child access</text>
+<rect x="479" y="1534" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="479" y="1534" width="6" height="86" rx="3" fill="#2a83a1" stroke="#2a83a1" stroke-width="2"/>
+<text x="525.0" y="1547" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Guardian profile</text>
+<text x="510.5078125" y="1583" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Parent or authorized carer</text>
+<rect x="95" y="1714" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="95" y="1714" width="6" height="86" rx="3" fill="#2a83a1" stroke="#2a83a1" stroke-width="2"/>
+<text x="167.0078125" y="1727" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Staff profile</text>
+<text x="170.0078125" y="1763" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Person + school</text>
+<rect x="479" y="1714" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="479" y="1714" width="6" height="86" rx="3" fill="#2a83a1" stroke="#2a83a1" stroke-width="2"/>
+<text x="496.015625" y="1727" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Teaching assignment</text>
+<text x="522.0078125" y="1763" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Staff + offering + dates</text>
+<polyline points="385,1397 479,1397" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="479,1397 467.2941876694152,1402.654551943446 467.2941876694152,1391.345448056554" fill="#71839b"/>
+<rect x="403.0" y="1365" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="410.0" y="1367" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<polyline points="240,1440 240,1534" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="240,1534 234.345448056554,1522.2941876694151 245.654551943446,1522.2941876694151" fill="#71839b"/>
+<rect x="261.0" y="1479" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="268.0" y="1481" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<polyline points="479,1577 385,1577" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="385,1577 396.7058123305848,1571.345448056554 396.7058123305848,1582.654551943446" fill="#71839b"/>
+<rect x="403.0" y="1545" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="410.0" y="1547" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<polyline points="385,1757 479,1757" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="479,1757 467.2941876694152,1762.654551943446 467.2941876694152,1751.345448056554" fill="#71839b"/>
+<rect x="403.0" y="1725" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="410.0" y="1727" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<rect x="828" y="1244" width="744" height="580" rx="20" fill="#ffffff" stroke="#dbe4ef" stroke-width="2"/>
+<rect x="848" y="1264" width="46" height="46" rx="12" fill="#7864b5" stroke="#7864b5" stroke-width="2"/>
+<text x="863.0" y="1270" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="28" font-weight="700" fill="#ffffff">5</text>
+<text x="911" y="1269" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="29" font-weight="700" fill="#172942">Teaching &amp; academic records</text>
+<rect x="863" y="1354" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="863" y="1354" width="6" height="86" rx="3" fill="#7864b5" stroke="#7864b5" stroke-width="2"/>
+<text x="910.0" y="1367" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Subject offering</text>
+<text x="943.5" y="1403" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Class + subject</text>
+<rect x="1247" y="1354" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="1247" y="1354" width="6" height="86" rx="3" fill="#7864b5" stroke="#7864b5" stroke-width="2"/>
+<text x="1295.9921875" y="1367" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Timetable entry</text>
+<text x="1283.5078125" y="1403" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Period + room + teacher</text>
+<rect x="863" y="1534" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="863" y="1534" width="6" height="86" rx="3" fill="#7864b5" stroke="#7864b5" stroke-width="2"/>
+<text x="928.5" y="1547" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Exam session</text>
+<text x="907.0" y="1583" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Exam + offering + date</text>
+<rect x="1247" y="1534" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="1247" y="1534" width="6" height="86" rx="3" fill="#7864b5" stroke="#7864b5" stroke-width="2"/>
+<text x="1313.0" y="1547" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Mark / result</text>
+<text x="1301.5" y="1583" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Linked to enrollment</text>
+<rect x="863" y="1714" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="863" y="1714" width="6" height="86" rx="3" fill="#7864b5" stroke="#7864b5" stroke-width="2"/>
+<text x="891.5078125" y="1727" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Attendance session</text>
+<text x="920.0" y="1763" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Class / date / period</text>
+<rect x="1247" y="1714" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="1247" y="1714" width="6" height="86" rx="3" fill="#7864b5" stroke="#7864b5" stroke-width="2"/>
+<text x="1286.5" y="1727" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Attendance entry</text>
+<text x="1301.5" y="1763" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Linked to enrollment</text>
+<polyline points="1153,1397 1247,1397" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="1247,1397 1235.2941876694151,1402.654551943446 1235.2941876694151,1391.345448056554" fill="#71839b"/>
+<rect x="1171.0" y="1365" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="1178.0" y="1367" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<polyline points="1008,1440 1008,1534" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="1008,1534 1002.345448056554,1522.2941876694151 1013.654551943446,1522.2941876694151" fill="#71839b"/>
+<rect x="1029.0" y="1479" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="1036.0" y="1481" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<polyline points="1153,1577 1247,1577" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="1247,1577 1235.2941876694151,1582.654551943446 1235.2941876694151,1571.345448056554" fill="#71839b"/>
+<rect x="1171.0" y="1545" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="1178.0" y="1547" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<polyline points="1153,1757 1247,1757" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="1247,1757 1235.2941876694151,1762.654551943446 1235.2941876694151,1751.345448056554" fill="#71839b"/>
+<rect x="1171.0" y="1725" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="1178.0" y="1727" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<rect x="1596" y="1244" width="744" height="580" rx="20" fill="#ffffff" stroke="#dbe4ef" stroke-width="2"/>
+<rect x="1616" y="1264" width="46" height="46" rx="12" fill="#bd7a16" stroke="#bd7a16" stroke-width="2"/>
+<text x="1631.0" y="1270" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="28" font-weight="700" fill="#ffffff">6</text>
+<text x="1679" y="1269" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="29" font-weight="700" fill="#172942">Fees, payments &amp; accounting</text>
+<rect x="1631" y="1354" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="1631" y="1354" width="6" height="86" rx="3" fill="#bd7a16" stroke="#bd7a16" stroke-width="2"/>
+<text x="1732.5" y="1367" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Invoice</text>
+<text x="1670.5078125" y="1403" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Student + billing period</text>
+<rect x="2015" y="1354" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="2015" y="1354" width="6" height="86" rx="3" fill="#bd7a16" stroke="#bd7a16" stroke-width="2"/>
+<text x="2091.0" y="1367" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Invoice line</text>
+<text x="2059.5" y="1403" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Fee items and amounts</text>
+<rect x="1631" y="1534" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="1631" y="1534" width="6" height="86" rx="3" fill="#bd7a16" stroke="#bd7a16" stroke-width="2"/>
+<text x="1659.0078125" y="1547" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Payment allocation</text>
+<text x="1662.0" y="1583" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Invoice payment mapping</text>
+<rect x="2015" y="1534" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="2015" y="1534" width="6" height="86" rx="3" fill="#bd7a16" stroke="#bd7a16" stroke-width="2"/>
+<text x="2106.0078125" y="1547" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Payment</text>
+<text x="2042.5078125" y="1583" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Student + confirmed funds</text>
+<rect x="1631" y="1714" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="1631" y="1714" width="6" height="86" rx="3" fill="#bd7a16" stroke="#bd7a16" stroke-width="2"/>
+<text x="1681.0" y="1727" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Accounting day</text>
+<text x="1683.5" y="1763" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Open / closed period</text>
+<rect x="2015" y="1714" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="2015" y="1714" width="6" height="86" rx="3" fill="#bd7a16" stroke="#bd7a16" stroke-width="2"/>
+<text x="2082.9921875" y="1727" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Ledger entry</text>
+<text x="2052.0" y="1763" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Posting / reversal history</text>
+<polyline points="1921,1397 2015,1397" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="2015,1397 2003.2941876694151,1402.654551943446 2003.2941876694151,1391.345448056554" fill="#71839b"/>
+<rect x="1939.0" y="1365" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="1946.0" y="1367" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<polyline points="1776,1440 1776,1534" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="1776,1534 1770.345448056554,1522.2941876694151 1781.654551943446,1522.2941876694151" fill="#71839b"/>
+<rect x="1797.0" y="1479" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="1804.0" y="1481" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<polyline points="2015,1577 1921,1577" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="1921,1577 1932.7058123305849,1571.345448056554 1932.7058123305849,1582.654551943446" fill="#71839b"/>
+<rect x="1939.0" y="1545" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="1946.0" y="1547" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<polyline points="2160,1620 2160,1714" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="2160,1714 2154.3454480565542,1702.2941876694151 2165.6545519434458,1702.2941876694151" fill="#71839b"/>
+<rect x="2181.0" y="1661" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="2188.0" y="1663" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<polyline points="1921,1757 2015,1757" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="2015,1757 2003.2941876694151,1762.654551943446 2003.2941876694151,1751.345448056554" fill="#71839b"/>
+<rect x="1939.0" y="1725" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="1946.0" y="1727" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<rect x="60" y="1848" width="744" height="580" rx="20" fill="#ffffff" stroke="#dbe4ef" stroke-width="2"/>
+<rect x="80" y="1868" width="46" height="46" rx="12" fill="#168d82" stroke="#168d82" stroke-width="2"/>
+<text x="95.0" y="1874" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="28" font-weight="700" fill="#ffffff">7</text>
+<text x="143" y="1873" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="29" font-weight="700" fill="#172942">Library &amp; borrowing</text>
+<rect x="95" y="1958" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="95" y="1958" width="6" height="86" rx="3" fill="#168d82" stroke="#168d82" stroke-width="2"/>
+<text x="183.0" y="1971" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Borrower</text>
+<text x="141.5078125" y="2007" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Student or staff profile</text>
+<rect x="479" y="1958" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="479" y="1958" width="6" height="86" rx="3" fill="#168d82" stroke="#168d82" stroke-width="2"/>
+<text x="594.5" y="1971" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Loan</text>
+<text x="542.0" y="2007" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Issue / due / return</text>
+<rect x="95" y="2138" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="95" y="2138" width="6" height="86" rx="3" fill="#168d82" stroke="#168d82" stroke-width="2"/>
+<text x="180.5" y="2151" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Book title</text>
+<text x="175.0" y="2187" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Catalog record</text>
+<rect x="479" y="2138" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="479" y="2138" width="6" height="86" rx="3" fill="#168d82" stroke="#168d82" stroke-width="2"/>
+<text x="559.5" y="2151" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Book copy</text>
+<text x="523.4921875" y="2187" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Physical inventory item</text>
+<rect x="95" y="2318" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="95" y="2318" width="6" height="86" rx="3" fill="#168d82" stroke="#168d82" stroke-width="2"/>
+<text x="157.0" y="2331" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Fine payment</text>
+<text x="131.0" y="2367" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Amount paid to a charge</text>
+<rect x="479" y="2318" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="479" y="2318" width="6" height="86" rx="3" fill="#168d82" stroke="#168d82" stroke-width="2"/>
+<text x="554.0" y="2331" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Fine charge</text>
+<text x="538.4921875" y="2367" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Loan charge history</text>
+<polyline points="385,2001 479,2001" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="479,2001 467.2941876694152,2006.654551943446 467.2941876694152,1995.345448056554" fill="#71839b"/>
+<rect x="403.0" y="1969" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="410.0" y="1971" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<polyline points="624,2138 624,2044" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="624,2044 629.654551943446,2055.7058123305846 618.345448056554,2055.7058123305846" fill="#71839b"/>
+<rect x="645.0" y="2083" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="652.0" y="2085" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<polyline points="385,2181 479,2181" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="479,2181 467.2941876694152,2186.6545519434458 467.2941876694152,2175.3454480565542" fill="#71839b"/>
+<rect x="403.0" y="2149" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="410.0" y="2151" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<polyline points="769,2001 788,2001 788,2361 769,2361" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="769,2361 780.7058123305848,2355.345448056554 780.7058123305848,2366.6545519434458" fill="#71839b"/>
+<rect x="712.0" y="2263" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="719.0" y="2265" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<polyline points="479,2361 385,2361" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="385,2361 396.7058123305848,2355.345448056554 396.7058123305848,2366.6545519434458" fill="#71839b"/>
+<rect x="403.0" y="2329" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="410.0" y="2331" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<rect x="828" y="1848" width="744" height="580" rx="20" fill="#ffffff" stroke="#dbe4ef" stroke-width="2"/>
+<rect x="848" y="1868" width="46" height="46" rx="12" fill="#3289b0" stroke="#3289b0" stroke-width="2"/>
+<text x="863.0" y="1874" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="28" font-weight="700" fill="#ffffff">8</text>
+<text x="911" y="1873" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="29" font-weight="700" fill="#172942">Transport &amp; assignments</text>
+<rect x="863" y="1958" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="863" y="1958" width="6" height="86" rx="3" fill="#3289b0" stroke="#3289b0" stroke-width="2"/>
+<text x="916.0078125" y="1971" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Student profile</text>
+<text x="964.5078125" y="2007" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Passenger</text>
+<rect x="1247" y="1958" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="1247" y="1958" width="6" height="86" rx="3" fill="#3289b0" stroke="#3289b0" stroke-width="2"/>
+<text x="1270.0078125" y="1971" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Transport allocation</text>
+<text x="1290.5078125" y="2007" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Student + stop + dates</text>
+<rect x="863" y="2138" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="863" y="2138" width="6" height="86" rx="3" fill="#3289b0" stroke="#3289b0" stroke-width="2"/>
+<text x="912.5078125" y="2151" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Transport route</text>
+<text x="937.5" y="2187" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Route definition</text>
+<rect x="1247" y="2138" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="1247" y="2138" width="6" height="86" rx="3" fill="#3289b0" stroke="#3289b0" stroke-width="2"/>
+<text x="1325.5078125" y="2151" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Route stop</text>
+<text x="1294.5" y="2187" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Pickup / drop location</text>
+<rect x="863" y="2318" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="863" y="2318" width="6" height="86" rx="3" fill="#3289b0" stroke="#3289b0" stroke-width="2"/>
+<text x="891.515625" y="2331" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Vehicle assignment</text>
+<text x="902.5" y="2367" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Route + vehicle + driver</text>
+<rect x="1247" y="2318" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="1247" y="2318" width="6" height="86" rx="3" fill="#3289b0" stroke="#3289b0" stroke-width="2"/>
+<text x="1348.515625" y="2331" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Vehicle</text>
+<text x="1282.5" y="2367" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Capacity and registration</text>
+<polyline points="1153,2001 1247,2001" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="1247,2001 1235.2941876694151,2006.654551943446 1235.2941876694151,1995.345448056554" fill="#71839b"/>
+<rect x="1171.0" y="1969" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="1178.0" y="1971" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<polyline points="1392,2138 1392,2044" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="1392,2044 1397.654551943446,2055.7058123305846 1386.345448056554,2055.7058123305846" fill="#71839b"/>
+<rect x="1413.0" y="2083" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="1420.0" y="2085" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<polyline points="1153,2181 1247,2181" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="1247,2181 1235.2941876694151,2186.6545519434458 1235.2941876694151,2175.3454480565542" fill="#71839b"/>
+<rect x="1171.0" y="2149" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="1178.0" y="2151" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<polyline points="1008,2224 1008,2318" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="1008,2318 1002.345448056554,2306.2941876694154 1013.654551943446,2306.2941876694154" fill="#71839b"/>
+<rect x="1029.0" y="2263" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="1036.0" y="2265" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<polyline points="1247,2361 1153,2361" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="1153,2361 1164.7058123305849,2355.345448056554 1164.7058123305849,2366.6545519434458" fill="#71839b"/>
+<rect x="1171.0" y="2329" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="1178.0" y="2331" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<rect x="1596" y="1848" width="744" height="580" rx="20" fill="#ffffff" stroke="#dbe4ef" stroke-width="2"/>
+<rect x="1616" y="1868" width="46" height="46" rx="12" fill="#ac6464" stroke="#ac6464" stroke-width="2"/>
+<text x="1631.0" y="1874" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="28" font-weight="700" fill="#ffffff">9</text>
+<text x="1679" y="1873" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="29" font-weight="700" fill="#172942">Payroll &amp; shared operations</text>
+<rect x="1631" y="1958" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="1631" y="1958" width="6" height="86" rx="3" fill="#ac6464" stroke="#ac6464" stroke-width="2"/>
+<text x="1703.0078125" y="1971" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Staff profile</text>
+<text x="1697.0" y="2007" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Employee identity</text>
+<rect x="2015" y="1958" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="2015" y="1958" width="6" height="86" rx="3" fill="#ac6464" stroke="#ac6464" stroke-width="2"/>
+<text x="2117.5078125" y="1971" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Payslip</text>
+<text x="2080.5078125" y="2007" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Staff + payroll run</text>
+<rect x="1631" y="2138" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="1631" y="2138" width="6" height="86" rx="3" fill="#ac6464" stroke="#ac6464" stroke-width="2"/>
+<text x="1709.5078125" y="2151" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Payroll run</text>
+<text x="1677.4921875" y="2187" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">School + salary period</text>
+<rect x="2015" y="2138" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="2015" y="2138" width="6" height="86" rx="3" fill="#ac6464" stroke="#ac6464" stroke-width="2"/>
+<text x="2065.4921875" y="2151" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Salary payment</text>
+<text x="2052.5" y="2187" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Confirmed disbursement</text>
+<rect x="1631" y="2318" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="1631" y="2318" width="6" height="86" rx="3" fill="#ac6464" stroke="#ac6464" stroke-width="2"/>
+<text x="1691.5" y="2331" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Event / notice</text>
+<text x="1678.0" y="2367" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Audience and visibility</text>
+<rect x="2015" y="2318" width="290" height="86" rx="12" fill="#ffffff" stroke="#d8e2ef" stroke-width="2"/>
+<rect x="2015" y="2318" width="6" height="86" rx="3" fill="#ac6464" stroke="#ac6464" stroke-width="2"/>
+<text x="2088.0078125" y="2331" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#172942">Attachment</text>
+<text x="2054.5078125" y="2367" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="400" fill="#64748b">Private owner-linked file</text>
+<polyline points="1921,2001 2015,2001" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="2015,2001 2003.2941876694151,2006.654551943446 2003.2941876694151,1995.345448056554" fill="#71839b"/>
+<rect x="1939.0" y="1969" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="1946.0" y="1971" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<polyline points="1776,2138 1776,2090 2160,2090 2160,2044" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="2160,2044 2165.6545519434458,2055.7058123305846 2154.3454480565542,2055.7058123305846" fill="#71839b"/>
+<rect x="1912.0" y="2057" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="1919.0" y="2059" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<polyline points="2160,2044 2160,2138" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="2160,2138 2154.3454480565542,2126.2941876694154 2165.6545519434458,2126.2941876694154" fill="#71839b"/>
+<rect x="2181.0" y="2083" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="2188.0" y="2085" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<polyline points="1921,2361 2015,2361" fill="none" stroke="#71839b" stroke-width="3"/>
+<polygon points="2015,2361 2003.2941876694151,2366.6545519434458 2003.2941876694151,2355.3454480565542" fill="#71839b"/>
+<rect x="1939.0" y="2329" width="58.0" height="31" rx="5" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+<text x="1946.0" y="2331" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="400" fill="#71839b">1 : N</text>
+<rect x="60" y="2452" width="2280" height="373" rx="22" fill="#e7edf7" stroke="#e7edf7" stroke-width="2"/>
+<text x="90" y="2477" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700" fill="#1764a7">ACCESS DECISION — CHECKED FOR EVERY REQUEST</text>
+<text x="90" y="2522" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="32" font-weight="700" fill="#172942">Verified account  +  active school membership  +  permitted action  +  allowed record scope</text>
+<text x="90" y="2580" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="28" font-weight="400" fill="#344f6e">Teacher: assigned classes / subjects    •    Parent: linked children    •    Student: own records</text>
+<text x="90" y="2625" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="28" font-weight="400" fill="#344f6e">Administrator: configured school scope    •    Finance / library / transport staff: their permitted module actions</text>
+<text x="90" y="2670" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="28" font-weight="400" fill="#344f6e">One person can be a teacher and parent. Each role grant has its own scope; those scopes are not combined blindly.</text>
+<text x="90" y="2735" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700" fill="#1764a7">SHARED ACROSS MODULES: audit history • school settings • compliance • approvals • notifications • file access</text>
+<text x="60" y="2860" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#536780">Proposed conceptual model, not an implemented database. Scope targets and profile references require concrete foreign keys in the detailed schema.</text>
+<text x="60" y="2896" dominant-baseline="text-before-edge" font-family="Segoe UI,Arial,sans-serif" font-size="23" font-weight="400" fill="#536780">Many-to-many links use assignment records. Optionality, uniqueness rules and advanced workflows are refined before implementation.</text>
+</svg>

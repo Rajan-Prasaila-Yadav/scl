@@ -22,6 +22,8 @@ This is an engineering recommendation based on the current relational school wor
 
 ## Reading order
 
+Start visually with the [current ERP relationship diagram](diagrams/README.md), revised on 11 October 2026 to cover people, multiple roles, scoped access and school modules. Roll numbers are enrollment references, not permanent global identities.
+
 | Document | Answers |
 | --- | --- |
 | [01 — Stack and database decision](01-stack-and-database-decision.md) | PostgreSQL versus alternatives; backend and library choices |

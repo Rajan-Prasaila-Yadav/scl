@@ -1,10 +1,10 @@
 # Project status and documentation index
 
-Updated: 11 October 2026. This document describes the repaired prototype, not the original ZIP.
+Updated: 16 October 2026. This document describes the repaired prototype, not the original ZIP.
 
 ## Current milestone
 
-EduCore is ready for UI demonstrations and feedback. It is not a live school operations system. The owner has reported deploying the prototype. Dynamic academics and billing are implemented locally on a feature branch; the live URL, hosting settings and deployed commit still need verification.
+EduCore is ready for UI demonstrations and feedback. It is not a live school operations system. The owner has reported deploying the prototype. Dynamic academics and billing are implemented on `feature/dynamic-academics-and-fees`; the live URL, hosting settings and deployed commit still need verification.
 
 | Item | Current state |
 | --- | --- |
