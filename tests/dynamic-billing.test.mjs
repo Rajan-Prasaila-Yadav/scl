@@ -279,3 +279,21 @@ test('yearly bulk assignment bills its configured class range once',async()=>{
   assert.equal(period.start,'2026-04-15T00:00')
   assert.equal(period.end,'2027-04-15T00:00')
 })
+import {applyIndividualClassFee} from '../lib/classFeeSetup.js'
+test('individual settings reactivate bulk-disabled headings without changing other fees or years',()=>{
+  const first={...fee,classStatuses:{2:{'2026':'inactive','2025':'active'}},classStarts:{2:{'2025':'2025-01-01'}}}
+  const other={...fee,id:11}
+  const all=[first,other], range={start:'2026-01-01',end:'2026-12-31',calendar:'AD'}
+  const row={assigned:true,amount:500,start:'2026-02-01',end:'2026-12-31',status:'active'}
+  const result=applyIndividualClassFee(all,10,2,row,'2026','2026',range)
+  assert.equal(result[0].classStatuses[2]['2026'],'active')
+  assert.equal(result[0].classStatuses[2]['2025'],'active')
+  assert.equal(result[0].classRates[2],500)
+  assert.equal(result[1],other)
+  assert.equal(first.classStatuses[2]['2026'],'inactive')
+  const stopped=applyIndividualClassFee(result,10,2,{assigned:false},'2026','2026',range)
+  assert.equal(stopped[0].classStatuses[2]['2026'],'inactive')
+  assert.equal(stopped[0].classStarts[2]['2025'],'2025-01-01')
+  assert.throws(()=>applyIndividualClassFee(all,10,2,{...row,end:'2027-01-01'},'2026','2026',range))
+  assert.throws(()=>applyIndividualClassFee(all,10,2,row,'2026','2027',range))
+})

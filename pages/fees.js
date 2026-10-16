@@ -1,3 +1,4 @@
+import { applyIndividualClassFee } from '../lib/classFeeSetup'
 import ClassFeeBulkSetup from '../components/ClassFeeBulkSetup'
 import {calendarDateLabel} from '../lib/calendar'
 import CalendarDateInput from '../components/CalendarDateInput'
@@ -106,18 +107,15 @@ export default function Fees() {
       (configStatus === 'all' || fee.status === configStatus) && (configFrequency === 'all' || fee.frequency === configFrequency) &&
       `${fee.name} ${fee.description || ''} ${classNames}`.toLowerCase().includes(configSearch.trim().toLowerCase())
   }).sort((a,b) => configSort === 'low' ? effectiveRate(a)-effectiveRate(b) : configSort === 'high' ? effectiveRate(b)-effectiveRate(a) : a.name.localeCompare(b.name))
-  const saveClassRate = (fee, assigned, rate, starts, year) => {
+  const saveClassRate = (fee, assigned, rate, starts, year, end, status) => {
     if (!configClass || !requirePermission('edit','Fees')) return false
-    const error=assigned && (fee.frequency==='Monthly' || starts?.[year]) ? activationDateError(starts?.[year],year,academicBillingYears().active,academicYearRange(year)) : ''; if(error) {showToast(error,'error');return false}
-    if(assigned && fee.classEnds?.[configClass.id]?.[year] && starts?.[year]>fee.classEnds[configClass.id][year]) {showToast('Start date must not be after the class fee end date. Update the range in Bulk class fee setup.','error');return false}
-    const classIds = (fee.classIds || []).filter(id => String(id) !== String(configClass.id))
-    const classRates = {...fee.classRates}
-    delete classRates[configClass.id]
-    if (assigned && rate !== '') classRates[configClass.id] = Number(rate)
-    const updated = fees.map(f => f.id === fee.id ? {...f, classIds:assigned ? [...classIds,configClass.id] : classIds, classRates, classStarts:{...f.classStarts,[configClass.id]:{...f.classStarts?.[configClass.id],[year]:starts?.[year]}}} : f)
-    if (!writeStoredList('educore.fees',updated)) return false
-    setFees(updated)
-    return true
+    try {
+      const updated = applyIndividualClassFee(fees, fee.id, configClass.id, {assigned, amount:rate === '' ? fee.amount : rate, start:starts[year], end, status}, year, academicBillingYears().active, academicYearRange(year))
+      if (!writeStoredList('educore.fees',updated)) return false
+      setFees(updated)
+      showToast('Class fee saved successfully','success')
+      return true
+    } catch(error) {showToast(error.message,'error');return false}
   }
   const [activeTab, setActiveTab] = useState('ledger')
   const [configView,setConfigView]=useState('headings')
@@ -548,18 +546,6 @@ export default function Fees() {
 
     if (!BILLING_FREQUENCIES.includes(feeForm.frequency)) { showToast('Choose a supported frequency.', 'error'); return }
     if (fees.some(f => f.id !== selectedFee?.id && f.name.trim().toLowerCase() === feeForm.name.trim().toLowerCase())) { showToast('A fee with this name already exists.', 'error'); return }
-    if (Object.values(feeForm.classRates || {}).some(value => value !== '' && (!Number.isFinite(Number(value)) || Number(value) < 0))) { showToast('Class rates must be nonnegative numbers.', 'error'); return }
-
-    const active=academicBillingYears().active
-    if (feeForm.activationYear!==active) {showToast('Active academic year changed. Reopen the fee editor.','error');return}
-    for(const classId of feeForm.classIds) {
-      const date=feeForm.classStarts?.[classId]?.[active]
-      if(selectedFee?.classEnds?.[classId]?.[active] && date>selectedFee.classEnds[classId][active]) {showToast('Start date must not be after the existing end date. Update dates in Bulk class fee setup.','error');return}
-      if(feeForm.frequency==='Monthly' || date) {
-        const error=activationDateError(date,feeForm.activationYear,active,academicYearRange(active))
-        if(error) {showToast(error,'error');return}
-      }
-    }
     const savedFee = {
       ...selectedFee,
       ...feeForm,
@@ -999,7 +985,7 @@ export default function Fees() {
                   </div>
 
                   <p className="class-fees-count">Status: {fee.status}</p>
-                  {configClass && hasEditPermission && <FeeClassRateEditor key={`${fee.id}-${configClass.id}-${JSON.stringify(fee.classIds)}-${JSON.stringify(fee.classRates)}`} fee={fee} classroom={configClass} onSave={(assigned,rate,starts,year)=>saveClassRate(fee,assigned,rate,starts,year)}/>}
+                  {configClass && hasEditPermission && <FeeClassRateEditor key={`${fee.id}-${configClass.id}-${JSON.stringify(fee.classIds)}-${JSON.stringify(fee.classRates)}`} fee={fee} classroom={configClass} onSave={(assigned,rate,starts,year,end,status)=>saveClassRate(fee,assigned,rate,starts,year,end,status)}/>}
                   {/* Actions footer */}
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', borderTop: '1px solid var(--border)', paddingTop: '12px', marginTop: '10px' }}>
                     {hasEditPermission && (
@@ -1573,74 +1559,13 @@ export default function Fees() {
                   />
                 </div>
 
-                {/* Class Assignment Selector */}
                 <div className="form-group">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <label style={{ margin: 0 }}>Class Assignments & optional unit rates <span className="req">*</span></label>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button 
-                        type="button" 
-                        className="btn btn-ghost btn-xs" 
-                        onClick={() => setAllClassesAssignment(true)}
-                        style={{ padding: '2px 6px', fontSize: '10px' }}
-                      >
-                        Select All
-                      </button>
-                      <button 
-                        type="button" 
-                        className="btn btn-ghost btn-xs" 
-                        onClick={() => setAllClassesAssignment(false)}
-                        style={{ padding: '2px 6px', fontSize: '10px' }}
-                      >
-                        Clear All
-                      </button>
-                    </div>
-                  </div>
-
-                  <div 
-                    style={{ 
-                      maxHeight: '130px', 
-                      overflowY: 'auto', 
-                      border: '1px solid var(--border)', 
-                      borderRadius: 'var(--radius-sm)', 
-                      padding: '10px',
-                      background: 'var(--bg3)'
-                    }}
-                  >
-                    {classes.length === 0 ? (
-                      <span style={{ fontSize: '12px', color: 'var(--t3)', fontStyle: 'italic' }}>No school classes registered in system.</span>
-                    ) : (
-                      classes.map((cls) => {
-                        const isChecked = (feeForm.classIds || []).includes(cls.id)
-                        return (
-                          <label 
-                            key={cls.id} 
-                            style={{ 
-                              display: 'flex', 
-                              alignItems: 'center', 
-                              gap: '8px', 
-                              fontSize: '12.5px', 
-                              padding: '5px 0', 
-                              cursor: 'pointer',
-                              color: 'var(--t1)'
-                            }}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={isChecked}
-                              onChange={() => toggleClassAssignment(cls.id)}
-                              style={{ width: '15px', height: '15px', accentColor: 'var(--accent)' }}
-                            />
-                            <span>{cls.name} - Section {cls.section} ({cls.classCode})</span>
-                            {isChecked && <input type="number" min="0" step="0.01" className="form-input" style={{maxWidth:130}} aria-label={`Rate for ${cls.name} ${cls.section}`} placeholder={`Base ${feeForm.amount || 0}`} value={feeForm.classRates?.[cls.id] ?? ''} onChange={event => setFeeForm({...feeForm,classRates:{...feeForm.classRates,[cls.id]:event.target.value}})} />}
-                            {isChecked && <span>Starts ({feeForm.activationYear})<CalendarDateInput calendar={academicYearRange(feeForm.activationYear).calendar} min={academicYearRange(feeForm.activationYear).start} max={academicYearRange(feeForm.activationYear).end} className="form-input" aria-label={`Activation date for ${cls.name} ${cls.section}`} required={feeForm.frequency==='Monthly'} value={feeForm.classStarts?.[cls.id]?.[feeForm.activationYear] || ''} onChange={value=>setFeeForm({...feeForm,classStarts:{...feeForm.classStarts,[cls.id]:{...feeForm.classStarts?.[cls.id],[feeForm.activationYear]:value}}})}/></span>}
-
-                          </label>
-                        )
-                      })
-                    )}
-                  </div>
+                  <label htmlFor="fee-heading-status">Status</label>
+                  <select id="fee-heading-status" className="form-input" value={feeForm.status} onChange={e=>setFeeForm({...feeForm,status:e.target.value})}>
+                    <option value="active">Active</option><option value="inactive">Inactive</option>
+                  </select>
                 </div>
+                <p className="text-muted">Save the heading here. Choose a class in the configurator to set its amount, dates and status individually, or use Bulk class fee setup.</p>
               </div>
 
               <div className="modal-footer">
