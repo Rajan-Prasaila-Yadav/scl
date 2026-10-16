@@ -1,3 +1,4 @@
+import ClassFeeBulkSetup from '../components/ClassFeeBulkSetup'
 import {calendarDateLabel} from '../lib/calendar'
 import CalendarDateInput from '../components/CalendarDateInput'
 import { academicBillingYears, academicYearRange, activationDateError, invoiceYear } from '../lib/academicBilling'
@@ -108,6 +109,7 @@ export default function Fees() {
   const saveClassRate = (fee, assigned, rate, starts, year) => {
     if (!configClass || !requirePermission('edit','Fees')) return false
     const error=assigned && (fee.frequency==='Monthly' || starts?.[year]) ? activationDateError(starts?.[year],year,academicBillingYears().active,academicYearRange(year)) : ''; if(error) {showToast(error,'error');return false}
+    if(assigned && fee.classEnds?.[configClass.id]?.[year] && starts?.[year]>fee.classEnds[configClass.id][year]) {showToast('Start date must not be after the class fee end date. Update the range in Bulk class fee setup.','error');return false}
     const classIds = (fee.classIds || []).filter(id => String(id) !== String(configClass.id))
     const classRates = {...fee.classRates}
     delete classRates[configClass.id]
@@ -118,6 +120,7 @@ export default function Fees() {
     return true
   }
   const [activeTab, setActiveTab] = useState('ledger')
+  const [configView,setConfigView]=useState('headings')
 
   // Filters State
   const [searchQuery, setSearchQuery] = useState('')
@@ -518,7 +521,7 @@ export default function Fees() {
         amount: '',
         frequency: 'Monthly',
         description: '',
-        classIds: configClass ? [configClass.id] : [],
+        classIds: [],
         classRates: {},
         classStarts: {},
         activationYear: academicBillingYears().active,
@@ -537,12 +540,12 @@ export default function Fees() {
       showToast('Fee Name is required', 'error')
       return
     }
-    if (feeForm.amount === '' || !Number.isFinite(Number(feeForm.amount)) || Number(feeForm.amount) <= 0) {
+    if (!Number.isFinite(Number(feeForm.amount)) || Number(feeForm.amount) < 0) {
       showToast('Please enter a valid amount', 'error')
       return
     }
 
-    if (!feeForm.classIds.length) { showToast('Assign at least one class.', 'error'); return }
+
     if (!BILLING_FREQUENCIES.includes(feeForm.frequency)) { showToast('Choose a supported frequency.', 'error'); return }
     if (fees.some(f => f.id !== selectedFee?.id && f.name.trim().toLowerCase() === feeForm.name.trim().toLowerCase())) { showToast('A fee with this name already exists.', 'error'); return }
     if (Object.values(feeForm.classRates || {}).some(value => value !== '' && (!Number.isFinite(Number(value)) || Number(value) < 0))) { showToast('Class rates must be nonnegative numbers.', 'error'); return }
@@ -551,12 +554,14 @@ export default function Fees() {
     if (feeForm.activationYear!==active) {showToast('Active academic year changed. Reopen the fee editor.','error');return}
     for(const classId of feeForm.classIds) {
       const date=feeForm.classStarts?.[classId]?.[active]
+      if(selectedFee?.classEnds?.[classId]?.[active] && date>selectedFee.classEnds[classId][active]) {showToast('Start date must not be after the existing end date. Update dates in Bulk class fee setup.','error');return}
       if(feeForm.frequency==='Monthly' || date) {
         const error=activationDateError(date,feeForm.activationYear,active,academicYearRange(active))
         if(error) {showToast(error,'error');return}
       }
     }
     const savedFee = {
+      ...selectedFee,
       ...feeForm,
       id: selectedFee?.id ?? makeId(),
       name: feeForm.name.trim(),
@@ -906,6 +911,8 @@ export default function Fees() {
         </>
       ) : (
         <div style={{ animation: 'fadeIn 0.25s ease' }}>
+          <div className="class-fee-bulk-actions"><button className="btn btn-ghost" onClick={()=>setConfigView('headings')}>Fee headings / individual setup</button><button className="btn btn-primary" onClick={()=>setConfigView('bulk')}>Bulk class fee setup</button></div>
+          {configView==='bulk' ? <ClassFeeBulkSetup fees={fees} classes={classes} initialClassId={configClass?.id} onSave={next=>{if(!requirePermission('edit','Fees') || !writeStoredList('educore.fees',next)) return false;setFees(next);return true}}/> : <>
           <div className="fee-config-toolbar">
             <h2>{configClass ? `Fee configuration: ${configClass.name} ${configClass.section}` : 'Fee configuration: all classes'}</h2>
             {originClass && <Link className="btn btn-ghost" href={`/classes?classId=${originClass.id}&tab=fees`}>Back to {originClass.name} {originClass.section}</Link>}
@@ -1046,6 +1053,7 @@ export default function Fees() {
               </div>
             )}
           </div>
+          </>}
         </div>
       )}
 
@@ -1502,7 +1510,7 @@ export default function Fees() {
                   <i className="fa-solid fa-sliders" style={{ color: 'var(--accent)', marginRight: '8px' }}></i>
                   {selectedFee ? 'Edit Fee Config' : 'Define New Fee Structure'}
                 </h3>
-                <p className="modal-sub">Setup custom fee rates, frequencies, and class mappings.</p>
+                <p className="modal-sub">Create a reusable fee heading. Set class amounts and dates in Bulk class fee setup.</p>
               </div>
               <button aria-label="Close" className="modal-close" onClick={() => setShowFeeModal(false)}>
                 <i className="fa-solid fa-xmark"></i>
@@ -1526,14 +1534,13 @@ export default function Fees() {
                 {/* Amount & Frequency */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
                   <div className="form-group">
-                    <label>Billing Amount ({currencySymbol()}) <span className="req">*</span></label>
-                    <input aria-label="Billing Amount" min="0.01" step="0.01"
+                    <label>Default amount ({currencySymbol()}) — optional</label>
+                    <input aria-label="Billing Amount" min="0" step="0.01"
                       className="form-input"
                       type="number"
                       placeholder="e.g. 500"
                       value={feeForm.amount}
                       onChange={(e) => setFeeForm({ ...feeForm, amount: e.target.value })}
-                      required
                     />
                   </div>
                   <div className="form-group">

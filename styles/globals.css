@@ -1880,3 +1880,15 @@ a { text-decoration: none; color: inherit; }
 @media(max-width:600px) { .student-fee-statement { padding:14px; } }
 .invoice-due { color:var(--t2); font-size:12px; margin-top:6px; }
 .invoice-overdue { color:var(--red); font-size:12px; font-weight:700; margin-top:6px; }
+
+/* Complete class fee setup */
+.class-fee-bulk { padding: 24px; border: 1px solid var(--border); border-radius: 16px; background: var(--bg2); }
+.class-fee-bulk > p, .class-fee-bulk form > p { color: var(--t2); margin: 14px 0; line-height: 1.6; }
+.class-fee-bulk-actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0; }
+.class-fee-bulk-table { min-width: 1100px; width: 100%; }
+.class-fee-bulk-table td { padding: 16px 10px; vertical-align: top; }
+.class-fee-bulk-table td:first-child { min-width: 210px; }
+.class-fee-bulk-table input, .class-fee-bulk-table select { min-width: 110px; }
+.class-fee-bulk-table small { display: block; font-size: 11px; margin-top: 6px; }
+.class-fee-bulk .billing-generator-grid { margin-top: 20px; }
+@media(max-width: 650px) { .class-fee-bulk { padding: 14px; } .class-fee-bulk-actions .btn { width: 100%; } }

@@ -3,7 +3,7 @@ import {calendarDateLabel} from '../lib/calendar'
 import { academicBillingYears, academicYearRange, invoiceYear } from '../lib/academicBilling'
 import { invoiceTiming, defaultDueDate } from '../lib/invoiceTiming'
 import React, { useState } from 'react'
-import { monthlyCoverage, paymentTotals, billingPeriodText, billingWindow, billedFeeInvoices, buildBillingPreview } from '../lib/billing'
+import { assignedBillingWindow, monthlyCoverage, paymentTotals, billingPeriodText, billingWindow, billedFeeInvoices, buildBillingPreview } from '../lib/billing'
 import { invoiceBalance, effectiveFeeRate } from '../lib/feeLedger'
 import { localDate } from '../lib/validation'
 import { currencySymbol } from '../lib/schoolConfig'
@@ -14,7 +14,7 @@ export default function BillingGenerator({ students, fees, classes, initialStude
   const [entries, setEntries] = useState({})
   const [adjustments,setAdjustments]=useState({discountType:'none',customDiscount:'',taxType:'none',customTax:'',penaltyType:'none',customPenalty:''})
   const units = {Monthly:'months',Yearly:'years',Weekly:'weeks',Daily:'days',Hourly:'hours','One-Time':'one-time charge'}
-  const entryFor = fee => entries[fee.id] || {selected:!(student && fee.frequency==='Monthly' && monthlyCoverage(student,fee,form.academicYear)?.remaining===0), start:(student && fee.frequency==='Monthly' ? monthlyCoverage(student,fee,form.academicYear)?.nextStart : null) || (fee.frequency==='Hourly' ? `${localDate()}T09:00` : localDate()), quantity:1}
+  const entryFor = fee => entries[fee.id] || {selected:!(student && fee.frequency==='Monthly' && monthlyCoverage(student,fee,form.academicYear)?.remaining===0), start:(student && fee.frequency==='Monthly' ? monthlyCoverage(student,fee,form.academicYear)?.nextStart : null) || (student && fee.classStarts?.[student.classId]?.[form.academicYear] ? (fee.frequency==='Hourly' ? `${fee.classStarts[student.classId][form.academicYear]}T09:00` : fee.classStarts[student.classId][form.academicYear]) : null) || (fee.frequency==='Hourly' ? `${localDate()}T09:00` : localDate()), quantity:1}
   const editEntry = (fee,key,value) => setEntries(current=>({...current,[fee.id]:{...entryFor(fee),[key]:value}}))
   const [form, setForm] = useState(() => {
     const student = students.find(s => String(s.id) === String(initialStudentId))
@@ -24,14 +24,14 @@ export default function BillingGenerator({ students, fees, classes, initialStude
   const calendar=academicYearRange(form.academicYear).calendar || 'AD'
   const student = form.scope==='student' ? students.find(s=>String(s.id)===form.studentId) : null
   const effectiveClass = student ? String(student.classId) : form.classId
-  const available = student ? fees.filter(f=>f.status==='active' && (effectiveClass==='all' || (f.classIds||[]).some(id=>String(id)===effectiveClass))) : []
+  const available = student ? fees.filter(f=>f.status==='active' && f.classStatuses?.[student.classId]?.[form.academicYear]!=='inactive' && (effectiveClass==='all' || (f.classIds||[]).some(id=>String(id)===effectiveClass))) : []
   const className = id => { const item=classes.find(c=>String(c.id)===String(id)); return item ? `${item.name} — ${item.section}` : 'Unassigned class' }
   const studentLabel = s => `${s.name} · ${s.admissionNo || `ID ${s.id}`} · ${className(s.classId)}`
   const matches = students.filter(s=>s.status==='active' && (form.classId==='all' || String(s.classId)===form.classId) && (String(s.id)===form.studentId || `${studentLabel(s)} ${s.rollNo || ''}`.toLowerCase().includes(search.trim().toLowerCase())))
   const candidates = available.map(fee => {
     const entry=entryFor(fee)
     let billed=[]
-    try { if(student) billed=billedFeeInvoices(student,fee,billingWindow(fee.frequency,entry.start,entry.quantity,calendar)) } catch { /* Preview reports invalid dates/quantities. */ }
+    try { if(student) billed=billedFeeInvoices(student,fee,assignedBillingWindow(student,fee,form.academicYear,entry.start,entry.quantity)) } catch { /* Preview reports invalid dates/quantities. */ }
     return {fee,entry,billed,coverage:fee.frequency==='Monthly' ? monthlyCoverage(student,fee,form.academicYear) : null}
   })
   const draft = {...form, adjustments, items:candidates.filter(row=>row.entry.selected && !row.billed.length).map(({fee,entry})=>({feeId:fee.id,start:entry.start,quantity:entry.quantity}))}
@@ -58,11 +58,11 @@ export default function BillingGenerator({ students, fees, classes, initialStude
         {student && <div className="bill-student-summary"><div><strong>{student.name}</strong><p>{student.admissionNo} · {className(student.classId)}</p></div><div><small>Existing outstanding balance</small><strong>{currencySymbol()}{(student.payments || []).reduce((sum,invoice)=>sum+invoiceBalance(invoice),0).toFixed(2)}</strong><small>Separate from this new bill</small></div></div>}
         {student && <details className="billing-generator-fees"><summary>Existing bills: paid, pending and balances</summary><div className="table-wrap"><table className="roles-table"><thead><tr><th>Year / invoice</th><th>Period</th><th>Status</th><th>Remaining</th></tr></thead><tbody>{(student.payments || []).map(invoice=><tr key={invoice.id}><td>{invoiceYear(invoice)} · {invoice.invoiceNo}</td><td>{billingPeriodText(invoice.month)}</td><td>{invoice.status}<br/>{invoiceTiming(invoice).label}</td><td>{currencySymbol()}{invoiceBalance(invoice).toFixed(2)}</td></tr>)}</tbody></table></div></details>}
         {student && <div className="bill-workspace-columns"><div>
-        <p className="billing-generator-help">Build one bill with different fee frequencies. Monthly fees start at the first unbilled month of the class activation year and cannot exceed its 12-month window. One-time and yearly quantities are always 1. Other recurring fees use their own units. Monthly periods start on day 1 of the selected academic calendar; yearly fees start on its first month. Weekly periods start Monday. Hourly input uses AD dates. End dates are exclusive.</p>
+        <p className="billing-generator-help">Build one bill with different fee frequencies. Monthly fees start at the first unbilled month of the class activation year and cannot exceed its 12-month window. One-time and yearly quantities are always 1. Other recurring fees use their own units. Monthly periods start on day 1 of the selected academic calendar; yearly fees use the class activation range when configured, otherwise its first calendar month. Weekly periods start Monday. Hourly input uses AD dates. End dates are exclusive.</p>
         <fieldset className="billing-generator-fees"><legend>New bill items</legend>
           {candidates.filter(row=>!row.billed.length).map(({fee,entry,coverage})=><div className="mixed-bill-item" key={fee.id}>
             <label><input type="checkbox" disabled={coverage?.remaining===0} checked={entry.selected} onChange={e=>editEntry(fee,'selected',e.target.checked)}/><span>{fee.name}<small>{fee.frequency} · {currencySymbol()}{Number(student ? effectiveFeeRate(fee,student.classId,student.feeOverrides) : effectiveClass==='all' ? fee.amount : effectiveFeeRate(fee,effectiveClass)).toFixed(2)} / unit{!student && effectiveClass==='all' ? ' (base; actual student rates in preview)' : ''}</small></span></label>
-            {coverage && <p>{calendarDateLabel(coverage.start,calendar)} to {calendarDateLabel(coverage.months[11].start,calendar)}: {coverage.paid} months paid; {coverage.billed-coverage.paid} billed but not fully paid; {coverage.remaining} months left to bill. {coverage.contiguous} consecutive months available from the next start.</p>}
+            {coverage && <p>{calendarDateLabel(coverage.start,calendar)} to {calendarDateLabel(coverage.months[coverage.months.length-1]?.start,calendar)}: {coverage.paid} months paid; {coverage.billed-coverage.paid} billed but not fully paid; {coverage.remaining} months left to bill. {coverage.contiguous} consecutive months available from the next start.</p>}
             {fee.frequency==='Monthly' && !coverage && <p role="alert">Set this class fee activation date for {form.academicYear} in Fee Configurator before billing.</p>}
             <div className="billing-generator-grid">
               <label>Period starts{fee.frequency==='Hourly' ? <input className="form-input" aria-label={`${fee.name} period starts`} type="datetime-local" value={entry.start} onChange={e=>editEntry(fee,'start',e.target.value)}/> : <CalendarDateInput calendar={calendar} className="form-input" aria-label={`${fee.name} period starts`} disabled={!!coverage} required={entry.selected} value={entry.start} onChange={value=>editEntry(fee,'start',value)}/>}</label>

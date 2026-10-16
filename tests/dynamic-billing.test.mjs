@@ -247,3 +247,35 @@ test('Nepali calendar converts real dates and bills BS months without Gregorian 
   const yearly=billingWindow('Yearly',start,1,'BS')
   assert.equal(toCalendar(yearly.end.slice(0,10),'BS'),'2084-01-01')
 })
+
+
+test('bulk class setup validates all rows before producing one shared fee update', async()=>{
+  const {applyClassFeeSetup}=await import('../lib/classFeeSetup.js')
+  const range={start:'2026-01-01',end:'2026-12-31'}
+  const heads=[fee,{...fee,id:11,name:'Exam',frequency:'One-Time'}, {...fee,id:12,status:'inactive'}]
+  const before=JSON.stringify(heads)
+  const rows=[{feeId:10,amount:'500.29',start:'2026-02-02',end:'2026-07-31',status:'active'},{feeId:11,amount:'200',start:'2026-02-02',end:'2026-12-31',status:'inactive'}]
+  const next=applyClassFeeSetup(heads,2,rows,'2026','2026',range)
+  assert.equal(next[0].classRates[2],500.29)
+  assert.equal(next[1].classStatuses[2]['2026'],'inactive')
+  assert.equal(next[2].status,'inactive')
+  assert.equal(JSON.stringify(heads),before)
+  assert.throws(()=>applyClassFeeSetup(heads,2,[...rows,{...rows[0]}],'2026','2026',range),/only once/)
+  assert.throws(()=>applyClassFeeSetup(heads,2,[{...rows[0],feeId:12}],'2026','2026',range),/Only active/)
+  assert.throws(()=>applyClassFeeSetup(heads,2,[rows[0],{...rows[1],end:'2027-01-01'}],'2026','2026',range),/between/)
+  assert.throws(()=>applyClassFeeSetup(heads,2,rows,'2026','2027',range),/changed/)
+  assert.equal(JSON.stringify(heads),before)
+  const preview=buildBillingPreview([student],next,{...form,academicYear:'2026',start:'2026-02-01',quantity:6})
+  assert.equal(preview.total,3001.74)
+  assert.throws(()=>buildBillingPreview([student],next,{...form,academicYear:'2026',start:'2026-02-01',quantity:7}),/only 6/)
+  const removed=applyClassFeeSetup(next,2,[],'2026','2026',range)
+  assert.equal(buildBillingPreview([student],removed,{...form,academicYear:'2026'}).invoices.length,0)
+})
+
+test('yearly bulk assignment bills its configured class range once',async()=>{
+  const {assignedBillingWindow}=await import('../lib/billing.js')
+  const annual={...fee,frequency:'Yearly',classStarts:{2:{session:'2026-04-15'}},classEnds:{2:{session:'2027-04-14'}}}
+  const period=assignedBillingWindow(student,annual,'session','2026-06-10',1)
+  assert.equal(period.start,'2026-04-15T00:00')
+  assert.equal(period.end,'2027-04-15T00:00')
+})
