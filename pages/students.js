@@ -1,3 +1,7 @@
+import { useRouter } from 'next/router'
+import FeeCollectionLedger from '../components/FeeCollectionLedger'
+import { effectiveFeeRate } from '../lib/feeLedger'
+import { INITIAL_FEES } from '../lib/feeData'
 import { validateStudentPlacement } from '../lib/registryValidation'
 import { getRaw } from '../lib/storage'
 import { currencySymbol } from '../lib/schoolConfig'
@@ -117,6 +121,15 @@ export default function Students() {
   const [viewMode, setViewMode] = useState('list')
   const [selectedStudentId, setSelectedStudentId] = useState(null)
   const [detailTab, setDetailTab] = useState('overview')
+  const router = useRouter()
+  useEffect(() => {
+    if (hydrated && router.isReady && router.query.studentId) {
+      setSelectedStudentId(Number(router.query.studentId))
+      setViewMode('detail')
+      setDetailTab('payments')
+    }
+  }, [hydrated, router.isReady, router.query.studentId])
+
   const [customDocInputs, setCustomDocInputs] = useState([])
 
   // Attendance states for student detail view
@@ -193,13 +206,7 @@ export default function Students() {
     setClasses(readStoredList(STORAGE_KEYS.classes, INITIAL_CLASSES))
     setSubjects(readStoredList(STORAGE_KEYS.subjects, INITIAL_SUBJECTS))
     setStaff(readStoredList(STORAGE_KEYS.staff, STAFF))
-    setFees(readStoredList('educore.fees', [
-      { id: 1, name: 'Tuition Fee', amount: 4500, frequency: 'Monthly', description: 'Standard tuition fee for regular academic modules', classIds: [1, 2, 3], status: 'active' },
-      { id: 2, name: 'Computer Lab Fee', amount: 500, frequency: 'Monthly', description: 'Charges for computing laboratory and resource materials', classIds: [1, 3], status: 'active' },
-      { id: 3, name: 'Term Exam Fee', amount: 1200, frequency: 'One-Time', description: 'Examination sheet printing and administrative costs', classIds: [1, 2, 3], status: 'active' },
-      { id: 4, name: 'Graduation Certificate Fee', amount: 1500, frequency: 'One-Time', description: 'Certificate embossing and graduation ceremony fee', classIds: [3], status: 'active' },
-      { id: 5, name: 'Library Resource Fee', amount: 150, frequency: 'Weekly', description: 'Weekly access fee for online journals and library catalog', classIds: [1, 2], status: 'active' }
-    ]))
+    setFees(readStoredList('educore.fees', INITIAL_FEES))
     setOnlineModes(readStoredList('educore.onlinePaymentModes', ['E-Sewa', 'Khalti', 'Bank Transfer']))
     setPayerRelationships(readStoredList('educore.payerRelationships', ['Self', 'Father', 'Mother', 'Uncle', 'Aunt', 'Brother', 'Sister', 'Guardian']))
     
@@ -231,21 +238,14 @@ export default function Students() {
   }, [selectedStudentId, detailTab])
 
   const handleSaveFeeOverrides = (e) => {
-    e?.preventDefault?.(); if (!requirePermission('edit')) return
+    e?.preventDefault?.(); if (!requirePermission('edit','Fees')) return
 
     e.preventDefault()
     if (!selectedStudent) return
-    setStudents((prev) =>
-      prev.map((s) => {
-        if (s.id === selectedStudent.id) {
-          return {
-            ...s,
-            feeOverrides: localOverrides
-          }
-        }
-        return s
-      })
-    )
+    if (fees.some(fee => !Number.isFinite(effectiveFeeRate(fee,selectedStudent.classId,localOverrides)) || effectiveFeeRate(fee,selectedStudent.classId,localOverrides)<0)) {showToast('Enter valid rates or concessions. Discounts cannot exceed the class rate or 100%.', 'error'); return}
+    const updated = students.map(s => s.id === selectedStudent.id ? {...s, feeOverrides:localOverrides} : s)
+    if (!writeStoredList(STORAGE_KEYS.students,updated)) return
+    setStudents(updated)
     showToast('Student-specific fee overrides saved successfully', 'success')
   }
 
@@ -323,15 +323,13 @@ export default function Students() {
     }
 
     const classFees = fees.filter(
-      (f) => f.status === 'active' && (f.classIds || []).includes(selectedStudent.classId)
+      (f) => f.status === 'active' && (f.classIds || []).some(id=>String(id)===String(selectedStudent.classId))
     )
 
     const N = Number(payForm.monthsCount) || 1
 
     const breakdown = classFees.map((f) => {
-      const overrideVal = selectedStudent.feeOverrides && selectedStudent.feeOverrides[f.id] !== undefined 
-        ? selectedStudent.feeOverrides[f.id] 
-        : null
+      const overrideVal = effectiveFeeRate(f,selectedStudent.classId,selectedStudent.feeOverrides)
       const finalRate = overrideVal !== null && overrideVal !== '' ? Number(overrideVal) : f.amount
 
       let computedAmount = finalRate
@@ -2360,504 +2358,7 @@ export default function Students() {
             )}
 
             {/* ─── Fees & Payments Tab ─── */}
-            {detailTab === 'payments' && (
-              <div style={{ padding: '24px' }}>
-                {/* Billing Summary Cards */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-                  <div className="stat-card" style={{ padding: '14px', border: '1px solid var(--border)' }}>
-                    <div className="stat-card-icon" style={{ background: 'var(--greenbg)', color: 'var(--green)', width: '36px', height: '36px', fontSize: '14px' }}>
-                      <i className="fa-solid fa-circle-check"></i>
-                    </div>
-                    <div style={{ marginTop: '8px' }}>
-                      <div style={{ fontSize: '18px', fontWeight: 800 }}>{currencySymbol()}{paymentStats.totalPaid}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--t3)', fontWeight: 600 }}>Total Fees Paid</div>
-                    </div>
-                  </div>
-                  <div className="stat-card" style={{ padding: '14px', border: '1px solid var(--border)' }}>
-                    <div className="stat-card-icon" style={{ background: 'var(--amberbg)', color: 'var(--amber)', width: '36px', height: '36px', fontSize: '14px' }}>
-                      <i className="fa-solid fa-clock"></i>
-                    </div>
-                    <div style={{ marginTop: '8px' }}>
-                      <div style={{ fontSize: '18px', fontWeight: 800 }}>{paymentStats.pendingCount} Months</div>
-                      <div style={{ fontSize: '11px', color: 'var(--t3)', fontWeight: 600 }}>Fees Pending</div>
-                    </div>
-                  </div>
-                  <div className="stat-card" style={{ padding: '14px', border: '1px solid var(--border)' }}>
-                    <div className="stat-card-icon" style={{ background: 'var(--redbg)', color: 'var(--red)', width: '36px', height: '36px', fontSize: '14px' }}>
-                      <i className="fa-solid fa-triangle-exclamation"></i>
-                    </div>
-                    <div style={{ marginTop: '8px' }}>
-                      <div style={{ fontSize: '18px', fontWeight: 800 }}>{currencySymbol()}{paymentStats.overdueAmount}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--t3)', fontWeight: 600 }}>Overdue Amount</div>
-                    </div>
-                  </div>
-                  <div className="stat-card" style={{ padding: '14px', border: '1px solid var(--border)' }}>
-                    <div className="stat-card-icon" style={{ background: 'var(--bluebg)', color: 'var(--blue)', width: '36px', height: '36px', fontSize: '14px' }}>
-                      <i className="fa-solid fa-money-bill-transfer"></i>
-                    </div>
-                    <div style={{ marginTop: '8px' }}>
-                      <div style={{ fontSize: '18px', fontWeight: 800 }}>{currencySymbol()}{paymentStats.lastPaidAmount || '—'}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--t3)', fontWeight: 600 }}>Previous Payment</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Payments Section Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
-                  <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--t1)', margin: 0 }}>
-                    Fee Payment History &amp; Slips
-                  </h3>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <button className="btn btn-ghost btn-xs" onClick={handleExportStudentFeesCSV} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <i className="fa-solid fa-file-excel" style={{ color: 'var(--green)' }}></i> Excel
-                    </button>
-                    <button className="btn btn-ghost btn-xs" onClick={handleExportStudentFeesPDF} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <i className="fa-solid fa-file-pdf" style={{ color: 'var(--red)' }}></i> PDF
-                    </button>
-                    <button className="btn btn-primary btn-xs" onClick={() => setShowPayForm(!showPayForm)}>
-                      <i className="fa-solid fa-plus"></i> Record Payment
-                    </button>
-                  </div>
-                </div>
-
-                {/* Sub-toolbar Filters */}
-                <div className="roles-table-card academic-list-card" style={{ padding: '12px 14px', marginBottom: '16px', background: 'var(--bg3)', border: '1px solid var(--border)' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px', alignItems: 'center' }}>
-                    <div className="roles-search" style={{ margin: 0 }}>
-                      <i className="fa-solid fa-magnifying-glass"></i>
-                      <input aria-label="Search month, invoice..."
-                        placeholder="Search month, invoice..."
-                        style={{ padding: '6px 10px 6px 32px', fontSize: '12px' }}
-                        value={feeSearch}
-                        onChange={(e) => setFeeSearch(e.target.value)}
-                      />
-                      {feeSearch && (
-                        <button aria-label="Close" className="roles-search-clear" onClick={() => setFeeSearch('')} style={{ right: '8px' }}>
-                          <i className="fa-solid fa-xmark"></i>
-                        </button>
-                      )}
-                    </div>
-                    <select aria-label="Fee Status Filter" className="roles-filter" style={{ margin: 0, width: '100%', padding: '6px 10px', fontSize: '12px' }} value={feeStatusFilter} onChange={(e) => setFeeStatusFilter(e.target.value)}>
-                      <option value="all">All Statuses</option>
-                      <option value="paid">Paid</option>
-                      <option value="pending">Pending</option>
-                      <option value="overdue">Overdue</option>
-                    </select>
-                    <select aria-label="Fee Sort By" className="roles-filter" style={{ margin: 0, width: '100%', padding: '6px 10px', fontSize: '12px' }} value={feeSortBy} onChange={(e) => setFeeSortBy(e.target.value)}>
-                      <option value="latest">Sort: Latest First</option>
-                      <option value="oldest">Sort: Oldest First</option>
-                      <option value="amountHigh">Sort: Amount (High-Low)</option>
-                      <option value="amountLow">Sort: Amount (Low-High)</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Record Payment Form */}
-                {showPayForm && (
-                  <form onSubmit={savePayment} style={{
-                    border: '1px solid var(--border)',
-                    borderRadius: 'var(--radius-sm)',
-                    padding: '16px',
-                    background: 'var(--bg2)',
-                    marginBottom: '20px'
-                  }}>
-                    <h4 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '12px' }}>Record New Payment Slip</h4>
-                    <div className="form-grid" style={{ marginBottom: '12.5px' }}>
-                      
-                      {/* Start Month */}
-                      <div className="form-group">
-                        <label>Billing Start Month <span className="req">*</span></label>
-                        <input aria-label="Billing Start Month"
-                          className="form-input"
-                          value={payForm.startMonth}
-                          onChange={(e) => setPayForm({ ...payForm, startMonth: e.target.value })}
-                          placeholder="e.g. June 2026"
-                          required
-                        />
-                      </div>
-
-                      {/* Number of Months Duration */}
-                      <div className="form-group">
-                        <label>Billing Duration (Months)</label>
-                        <select aria-label="Billing Duration (Months)"
-                          className="form-select"
-                          value={payForm.monthsCount}
-                          onChange={(e) => setPayForm({ ...payForm, monthsCount: Number(e.target.value) })}
-                        >
-                          <option value={1}>1 Month (Standard)</option>
-                          <option value={2}>2 Months (Bi-Monthly)</option>
-                          <option value={3}>3 Months (Quarterly)</option>
-                          <option value={6}>6 Months (Half-Yearly)</option>
-                          <option value={12}>12 Months (Yearly)</option>
-                        </select>
-                      </div>
-
-                      {/* Payer Full Name */}
-                      <div className="form-group">
-                        <label>Payer Full Name {payForm.status === 'paid' && <span className="req">*</span>}</label>
-                        <input aria-label="Payer Full Name"
-                          className="form-input"
-                          value={payForm.paidBy || ''}
-                          onChange={(e) => setPayForm({ ...payForm, paidBy: e.target.value })}
-                          placeholder="Name of person paying"
-                          required={payForm.status === 'paid'}
-                        />
-                      </div>
-
-                      {/* Payer Relationship */}
-                      <div className="form-group">
-                        <label>Payer Relationship</label>
-                        <select aria-label="Payer Relationship"
-                          className="form-select"
-                          value={payForm.payerRelation || 'Father'}
-                          onChange={(e) => setPayForm({ ...payForm, payerRelation: e.target.value })}
-                        >
-                          {payerRelationships.map((rel) => (
-                            <option key={rel} value={rel}>{rel}</option>
-                          ))}
-                          <option value="custom">+ Add Custom Relation</option>
-                        </select>
-                      </div>
-
-                      {/* Custom Payer Relationship */}
-                      {payForm.payerRelation === 'custom' && (
-                        <div className="form-group">
-                          <label>Custom Relation <span className="req">*</span></label>
-                          <input aria-label="Custom Relation"
-                            className="form-input"
-                            value={payForm.customRelationship || ''}
-                            onChange={(e) => setPayForm({ ...payForm, customRelationship: e.target.value })}
-                            placeholder="e.g. Grandfather"
-                            required
-                          />
-                        </div>
-                      )}
-
-                      {/* Status */}
-                      <div className="form-group">
-                        <label>Status</label>
-                        <select aria-label="Status"
-                          className="form-select"
-                          value={payForm.status || 'paid'}
-                          onChange={(e) => setPayForm({ ...payForm, status: e.target.value })}
-                        >
-                          <option value="paid">Paid</option>
-                          <option value="pending">Pending</option>
-                          <option value="overdue">Overdue</option>
-                        </select>
-                      </div>
-
-                      {/* Payment Method */}
-                      {payForm.status === 'paid' && (
-                        <>
-                          <div className="form-group">
-                            <label>Payment Method</label>
-                            <select aria-label="Payment Method"
-                              className="form-select"
-                              value={payForm.paymentMode || 'Cash'}
-                              onChange={(e) => setPayForm({ ...payForm, paymentMode: e.target.value, onlineApp: e.target.value === 'Online' ? 'E-Sewa' : '' })}
-                            >
-                              <option value="Cash">Cash</option>
-                              <option value="Online">Online</option>
-                            </select>
-                          </div>
-                          {payForm.paymentMode === 'Online' && (
-                            <div className="form-group">
-                              <label>Online Platform</label>
-                              <select aria-label="Online Platform"
-                                className="form-select"
-                                value={payForm.onlineApp || 'E-Sewa'}
-                                onChange={(e) => setPayForm({ ...payForm, onlineApp: e.target.value })}
-                              >
-                                {onlineModes.map((mode) => (
-                                  <option key={mode} value={mode}>{mode}</option>
-                                ))}
-                                <option value="custom">+ Add Custom App</option>
-                              </select>
-                            </div>
-                          )}
-                          {payForm.paymentMode === 'Online' && payForm.onlineApp === 'custom' && (
-                            <div className="form-group">
-                              <label>Custom App Name <span className="req">*</span></label>
-                              <input aria-label="Custom App Name"
-                                className="form-input"
-                                value={payForm.customOnlineApp || ''}
-                                onChange={(e) => setPayForm({ ...payForm, customOnlineApp: e.target.value })}
-                                placeholder="e.g. ConnectIPS"
-                                required
-                              />
-                            </div>
-                          )}
-                        </>
-                      )}
-
-                      {/* Discount Settings */}
-                      <div className="form-group">
-                        <label>Discount Settings</label>
-                        <select aria-label="Discount Settings"
-                          className="form-select"
-                          value={payForm.discountType || 'none'}
-                          onChange={(e) => setPayForm({ ...payForm, discountType: e.target.value, customDiscount: '' })}
-                        >
-                          <option value="none">No Discount</option>
-                          <option value="5%">5% Discount</option>
-                          <option value="10%">10% Discount</option>
-                          <option value="25%">25% Discount</option>
-                          <option value="50%">50% Scholarship</option>
-                          <option value="100%">100% Full Waiver</option>
-                          <option value="customPercent">Custom Percent (%)</option>
-                          <option value="customAmount">Custom Amount ({currencySymbol()})</option>
-                        </select>
-                      </div>
-
-                      {/* Custom Discount Input */}
-                      {(payForm.discountType === 'customPercent' || payForm.discountType === 'customAmount') && (
-                        <div className="form-group">
-                          <label>{payForm.discountType === 'customPercent' ? 'Discount (%)' : 'Discount ($)'} <span className="req">*</span></label>
-                          <input aria-label="e.g. 15"
-                            className="form-input"
-                            type="number"
-                            min="0"
-                            placeholder="e.g. 15"
-                            value={payForm.customDiscount}
-                            onChange={(e) => setPayForm({ ...payForm, customDiscount: e.target.value })}
-                            required
-                          />
-                        </div>
-                      )}
-
-                      {/* Tax system */}
-                      <div className="form-group">
-                        <label>Tax System</label>
-                        <select aria-label="Tax System"
-                          className="form-select"
-                          value={payForm.taxType || 'none'}
-                          onChange={(e) => setPayForm({ ...payForm, taxType: e.target.value, customTax: '' })}
-                        >
-                          <option value="none">No Tax</option>
-                          <option value="13%">13% VAT</option>
-                          <option value="5%">5% Service Tax</option>
-                          <option value="customPercent">Custom Percent (%)</option>
-                          <option value="customAmount">Custom Amount ({currencySymbol()})</option>
-                        </select>
-                      </div>
-
-                      {/* Custom Tax Input */}
-                      {(payForm.taxType === 'customPercent' || payForm.taxType === 'customAmount') && (
-                        <div className="form-group">
-                          <label>{payForm.taxType === 'customPercent' ? 'Tax Rate (%)' : 'Tax Amount ($)'} <span className="req">*</span></label>
-                          <input aria-label="e.g. 13"
-                            className="form-input"
-                            type="number"
-                            min="0"
-                            placeholder="e.g. 13"
-                            value={payForm.customTax}
-                            onChange={(e) => setPayForm({ ...payForm, customTax: e.target.value })}
-                            required
-                          />
-                        </div>
-                      )}
-
-                    </div>
-
-                    {/* Breakdown list showing dynamic calculation */}
-                    <div style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '12px 16px', marginBottom: '16px' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--t3)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>
-                        Periodic Rate Scaling Breakdown
-                      </span>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', borderBottom: '1px solid var(--border)', paddingBottom: '8px', marginBottom: '8px' }}>
-                        {calculatedStudentTotals.breakdown.map((item, idx) => (
-                          <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--t2)' }}>
-                            <span>
-                              {item.name} ({currencySymbol()}{item.rate}/{item.frequency})
-                            </span>
-                            <strong>{currencySymbol()}{item.amount.toLocaleString()}</strong>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--t2)', marginBottom: '6px' }}>
-                        <span>Subtotal:</span>
-                        <span>{currencySymbol()}{calculatedStudentTotals.subtotal.toLocaleString()}.00</span>
-                      </div>
-                      {calculatedStudentTotals.discount > 0 && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--red)', marginBottom: '6px' }}>
-                          <span>Discount Applied:</span>
-                          <span>-{currencySymbol()}{calculatedStudentTotals.discount.toLocaleString()}.00</span>
-                        </div>
-                      )}
-                      {calculatedStudentTotals.tax > 0 && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--accent)', marginBottom: '6px' }}>
-                          <span>Tax Surcharge:</span>
-                          <span>+{currencySymbol()}{calculatedStudentTotals.tax.toLocaleString()}.00</span>
-                        </div>
-                      )}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', fontWeight: 800, color: 'var(--t1)', borderTop: '1px solid var(--border)', paddingTop: '8px', marginTop: '4px' }}>
-                        <span>Grand Total:</span>
-                        <span style={{ color: 'var(--green)' }}>{currencySymbol()}{calculatedStudentTotals.grandTotal.toLocaleString()}.00</span>
-                      </div>
-                      <div style={{ fontSize: '11px', color: 'var(--t3)', marginTop: '8px', fontStyle: 'italic', borderTop: '1px dashed var(--border)', paddingTop: '6px' }}>
-                        <strong>In Words:</strong> {calculatedStudentTotals.words}
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                      <button className="btn btn-ghost btn-xs" type="button" onClick={() => setShowPayForm(false)}>
-                        Cancel
-                      </button>
-                      <button className="btn btn-primary btn-xs" type="submit">
-                        Save Payment
-                      </button>
-                    </div>
-                  </form>
-                )}
-
-                {/* Payments Table */}
-                {filteredStudentPayments.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--t3)', border: '1px dashed var(--border)', borderRadius: 'var(--radius-sm)' }}>
-                    <i className="fa-solid fa-receipt" style={{ fontSize: '32px', marginBottom: '12px', display: 'block' }}></i>
-                    No payment slips found matching your filters.
-                  </div>
-                ) : (
-                  <div className="table-wrap" style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}>
-                    <table className="roles-table">
-                      <thead>
-                        <tr>
-                          <th>Slip Number</th>
-                          <th>Month</th>
-                          <th>Amount</th>
-                          <th>Payment Date &amp; Time</th>
-                          <th>Payer Details</th>
-                          <th>Collector</th>
-                          <th>Status</th>
-                          <th style={{ textAlign: 'right' }}>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredStudentPayments.map((p) => (
-                          <tr key={p.id}>
-                            <td>
-                              <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{p.invoiceNo}</span>
-                            </td>
-                            <td><strong>{p.month}</strong></td>
-                            <td>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                <strong style={{ color: p.status === 'paid' ? 'var(--green)' : 'var(--t1)', fontSize: '13.5px' }}>
-                                  {currencySymbol()}{(p.status === 'paid' ? p.amountPaid : (p.amount || 4500)).toLocaleString()}
-                                </strong>
-                                {p.status === 'paid' && p.discountAmount > 0 && (
-                                  <span style={{ fontSize: '10px', color: 'var(--red)', fontWeight: 600 }}>
-                                    Disc: -{currencySymbol()}{p.discountAmount.toLocaleString()}
-                                  </span>
-                                )}
-                                {p.status === 'paid' && p.taxAmount > 0 && (
-                                  <span style={{ fontSize: '10px', color: 'var(--accent)', fontWeight: 600 }}>
-                                    Tax: +{currencySymbol()}{p.taxAmount.toLocaleString()}
-                                  </span>
-                                )}
-                              </div>
-                            </td>
-                            <td>
-                              <div style={{ fontSize: '12px' }}>
-                                <i className="fa-regular fa-calendar-days" style={{ marginRight: '6px', color: 'var(--t3)' }}></i>
-                                {p.paymentDate}
-                              </div>
-                            </td>
-                            <td>
-                              {p.status === 'paid' ? (
-                                <div>
-                                  <div style={{ fontWeight: 600 }}>{p.paidBy}</div>
-                                  <div style={{ fontSize: '10px', color: 'var(--t3)' }}>Relation: {p.payerRelation}</div>
-                                  <div style={{ fontSize: '10px', color: 'var(--teal)' }}>
-                                    via {p.paymentMode || 'Cash'}{p.paymentMode === 'Online' && p.onlineApp ? ` (${p.onlineApp})` : ''}
-                                  </div>
-                                </div>
-                              ) : '—'}
-                            </td>
-                            <td>
-                              {p.status === 'paid' ? (
-                                <div style={{ fontSize: '12px', fontWeight: 500 }}>
-                                  {getCollectorName(p.receivedBy)}
-                                </div>
-                              ) : '—'}
-                            </td>
-                            <td>
-                              <span className={`badge ${
-                                p.status === 'paid' ? 'badge-active' :
-                                p.status === 'pending' ? 'badge-gray' : 'badge-red'
-                              }`}>
-                                {p.status.toUpperCase()}
-                              </span>
-                            </td>
-                            <td style={{ textAlign: 'right' }}>
-                              <div className="roles-actions" style={{ justifyContent: 'flex-end' }}>
-                                {p.status === 'paid' && (
-                                  <>
-                                    <button
-                                      className="btn-icon-sm tooltip"
-                                      data-tooltip="Print Receipt"
-                                      onClick={() => {
-                                        setActiveReceipt({
-                                          ...p,
-                                          studentName: selectedStudent.name,
-                                          admissionNo: selectedStudent.admissionNo || '',
-                                          className: getClassName(selectedStudent.classId)
-                                        })
-                                      }}
-                                      style={{ marginRight: '4px' }}
-                                    >
-                                      <i className="fa-solid fa-print"></i>
-                                    </button>
-                                    <button
-                                      className="btn-icon-sm tooltip"
-                                      data-tooltip="Download Receipt"
-                                      onClick={() => {
-                                        const subtotal = p.amount !== undefined ? p.amount : (p.amountPaid || 0)
-                                        const discount = p.discountAmount || 0
-                                        const tax = p.taxAmount || 0
-                                        const grandTotal = p.amountPaid || 0
-                                        const words = p.inWords || numberToWords(grandTotal)
-
-                                        let itemsStr = ''
-                                        if (p.feesBreakdown && p.feesBreakdown.length > 0) {
-                                          itemsStr = p.feesBreakdown.map(item => `  - ${item.name}: ${currencySymbol()}${item.amount}.00`).join('\n')
-                                        } else {
-                                          itemsStr = `  - Tuition & Educational Services Fee: ${currencySymbol()}${subtotal}.00`
-                                        }
-
-                                        const content = `=====================================\n         EDUCORE PAYMENT SLIP        \n=====================================\nSlip No: ${p.invoiceNo}\nStudent Name: ${selectedStudent.name}\nAdmission No: ${selectedStudent.admissionNo}\nClass: ${getClassName(selectedStudent.classId)}\n-------------------------------------\nBilling Period: ${p.month}\n\nItemized Breakdown:\n${itemsStr}\n-------------------------------------\nSubtotal: ${currencySymbol()}${subtotal}.00\nDiscount: -${currencySymbol()}${discount}.00\nTax Surcharge: +${currencySymbol()}${tax}.00\nGrand Total Paid: ${currencySymbol()}${grandTotal}.00\nAmount in Words: ${words}\n-------------------------------------\nPayment Date: ${p.paymentDate}\nPaid By: ${p.paidBy} (${p.payerRelation})\nPayment Method: ${p.paymentMode || 'Cash'}${p.paymentMode === 'Online' && p.onlineApp ? ` (${p.onlineApp})` : ''}\nReceived By: ${getCollectorName(p.receivedBy)}\n-------------------------------------\nStatus: COMPLETED\n=====================================`
-                                        const blob = new Blob([content], { type: 'text/plain' })
-                                        const url = URL.createObjectURL(blob)
-                                        const a = document.createElement('a')
-                                        a.href = url
-                                        a.download = `Receipt_${selectedStudent.name.replace(/\s+/g, '_')}_${p.month.replace(/\s+/g, '_')}.txt`
-                                        document.body.appendChild(a)
-                                        a.click()
-                                        document.body.removeChild(a)
-                                        URL.revokeObjectURL(url)
-                                      }}
-                                    >
-                                      <i className="fa-solid fa-download"></i>
-                                    </button>
-                                  </>
-                                )}
-                                <button aria-label="Delete"
-                                  className="btn-icon-sm danger tooltip"
-                                  data-tooltip="Delete Slip Record"
-                                  onClick={() => deletePayment(p.id)}
-                                >
-                                  <i className="fa-solid fa-trash"></i>
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            )}
+            {detailTab === 'payments' && <FeeCollectionLedger student={selectedStudent} students={students} fees={fees} classes={classes} />}
 
             {/* ─── Fee Customizations Tab ─── */}
             {detailTab === 'feeOverrides' && (
@@ -2874,7 +2375,7 @@ export default function Students() {
                 </div>
 
                 {(() => {
-                  const classFees = fees.filter(f => f.status === 'active' && (f.classIds || []).includes(selectedStudent.classId))
+                  const classFees = fees.filter(f => f.status === 'active' && (f.classIds || []).some(id=>String(id)===String(selectedStudent.classId)))
                   
                   if (classFees.length === 0) {
                     return (
@@ -2899,7 +2400,8 @@ export default function Students() {
                           </thead>
                           <tbody>
                             {classFees.map((feeItem) => {
-                              const val = localOverrides[feeItem.id] !== undefined ? localOverrides[feeItem.id] : ''
+                              const raw = localOverrides[feeItem.id]
+                              const rule = raw && typeof raw === 'object' ? raw : {mode:raw !== undefined && raw !== '' ? 'rate' : 'inherit',value:raw ?? '',reason:''}
                               return (
                                 <tr key={feeItem.id}>
                                   <td>
@@ -2912,24 +2414,15 @@ export default function Students() {
                                     <span className="badge badge-gray" style={{ textTransform: 'uppercase' }}>{feeItem.frequency}</span>
                                   </td>
                                   <td>
-                                    <strong style={{ color: 'var(--t2)' }}>{currencySymbol()}{feeItem.amount}</strong>
+                                    <strong style={{ color: 'var(--t2)' }}>{currencySymbol()}{effectiveFeeRate(feeItem,selectedStudent.classId)}</strong>
                                   </td>
                                   <td>
-                                    <input aria-label="Val"
-                                      type="number"
-                                      className="form-input"
-                                      style={{ padding: '6px 10px', fontSize: '13px', width: '120px', margin: 0 }}
-                                      placeholder={`Default: ${currencySymbol()}${feeItem.amount}`}
-                                      value={val}
-                                      onChange={(e) => {
-                                        const newVal = e.target.value
-                                        setLocalOverrides(prev => ({
-                                          ...prev,
-                                          [feeItem.id]: newVal === '' ? '' : Number(newVal)
-                                        }))
-                                      }}
-                                      min="0"
-                                    />
+                                    <select className="form-select" aria-label={`${feeItem.name} concession type`} value={rule.mode} onChange={e=>setLocalOverrides(prev=>({...prev,[feeItem.id]:e.target.value==='inherit'?'':{...rule,mode:e.target.value,value:rule.value || 0}}))}>
+                                      <option value="inherit">Use class rate</option><option value="rate">Custom rate</option><option value="discountPercent">Concession (%)</option><option value="discountFixed">Concession (fixed)</option><option value="increasePercent">Increase (%)</option><option value="increaseFixed">Increase (fixed)</option><option value="waiver">Full waiver</option>
+                                    </select>
+                                    {!['inherit','waiver'].includes(rule.mode) && <input className="form-input" aria-label={`${feeItem.name} concession value`} type="number" min="0" step="0.01" required value={rule.value} onChange={e=>setLocalOverrides(prev=>({...prev,[feeItem.id]:{...rule,value:e.target.value}}))}/>}
+                                    {rule.mode!=='inherit' && <input className="form-input" aria-label={`${feeItem.name} concession reason`} placeholder="Reason / scholarship reference" maxLength={200} value={rule.reason || ''} onChange={e=>setLocalOverrides(prev=>({...prev,[feeItem.id]:{...rule,reason:e.target.value}}))}/>}
+                                    <small>Effective rate: {currencySymbol()}{effectiveFeeRate(feeItem,selectedStudent.classId,localOverrides)}</small>
                                   </td>
                                 </tr>
                               )

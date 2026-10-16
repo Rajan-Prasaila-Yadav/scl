@@ -1775,3 +1775,120 @@ a { text-decoration: none; color: inherit; }
  .modal-panel { max-height:calc(100dvh - 32px); }
 }
 @media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms!important; transition-duration:.01ms!important; scroll-behavior:auto!important; } }
+
+/* Class fee overview and action layout */
+.class-fees { padding:24px; }
+.class-fees-heading { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:18px; margin-bottom:18px; }
+.class-fees-heading h3 { margin:0 0 6px; font-size:18px; color:var(--t1); }
+.class-fees-count { margin:0; font-size:13px; color:var(--t2); }
+.class-fees-actions, .class-fees-modal-actions, .class-detail-footer-actions { display:flex; align-items:center; flex-wrap:wrap; gap:10px; }
+.class-fees-actions .btn, .class-fees-modal-actions .btn, .class-detail-footer .btn { min-height:40px; justify-content:center; padding:10px 16px; line-height:1.25; text-decoration:none; }
+.class-fees-actions .btn:focus-visible, .class-fees-modal-actions .btn:focus-visible, .class-detail-footer .btn:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+.class-fees-note { display:flex; align-items:flex-start; gap:10px; padding:12px 14px; margin:0 0 20px; background:var(--bg3); border:1px solid var(--border); border-radius:8px; font-size:12px; line-height:1.65; color:var(--t2); }
+.class-fees-note i { color:var(--accent); margin-top:4px; }
+.class-fees .table-wrap { border:1px solid var(--border); border-radius:10px; overflow:auto; }
+.class-fees .roles-table { min-width:600px; }
+.class-fees-summary { margin-top:24px; }
+.class-fees-summary h4 { margin:0 0 12px; font-size:13px; color:var(--t2); }
+.class-fees-total-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; }
+.class-fees-total { display:flex; flex-direction:column; gap:8px; padding:16px; background:var(--bg3); border:1px solid var(--border); border-radius:10px; }
+.class-fees-total span, .class-fees-total small { font-size:12px; color:var(--t2); }
+.class-fees-total strong { font-size:22px; color:var(--t1); font-variant-numeric:tabular-nums; }
+.class-detail-footer { display:flex; justify-content:space-between; flex-wrap:wrap; gap:16px; margin-top:16px; border-top:1px solid var(--border); padding-top:18px; }
+.class-fees-modal { max-width:760px; width:95%; max-height:90vh; overflow-y:auto; padding:24px; }
+.class-fees-modal > h3 { margin-bottom:10px; }
+.class-fees-modal > p { color:var(--t2); font-size:13px; line-height:1.6; margin-bottom:16px; }
+.class-fees-modal-actions { justify-content:flex-end; margin-top:20px; padding-top:16px; border-top:1px solid var(--border); }
+@media(max-width:640px) {
+  .class-fees { padding:16px; }
+  .class-fees-actions, .class-detail-footer-actions { width:100%; }
+  .class-fees-actions .btn, .class-detail-footer .btn { flex:1 1 100%; white-space:normal; }
+  .class-fees-total-grid { grid-template-columns:1fr; }
+  .class-fees-modal { padding:18px; }
+}
+
+.fee-config-toolbar { padding:20px; margin-bottom:20px; background:var(--bg2); border:1px solid var(--border); border-radius:12px; }
+.fee-config-toolbar h2 { font-size:18px; margin-bottom:12px; }
+.fee-config-toolbar p { color:var(--t2); font-size:12px; margin-top:14px; }
+.fee-config-filters { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin-top:16px; }
+.fee-class-editor { display:grid; gap:10px; padding:14px; margin-top:14px; background:var(--bg3); border:1px solid var(--border); border-radius:8px; }
+.fee-class-editor label, .fee-class-editor small { font-size:12px; color:var(--t2); line-height:1.5; }
+.fee-class-editor .btn { min-height:36px; justify-content:center; }
+
+/* Invoice generation: keep actions visible while long previews scroll inside. */
+.modal-panel.billing-generator { width: min(800px, 100%); max-width:800px; max-height:calc(100dvh - 32px); overflow:hidden; }
+.billing-generator > .modal-header { flex-shrink:0; gap:16px; }
+.billing-generator .modal-header p { margin-top:6px; color:var(--t2); font-size:13px; }
+.billing-generator > form { display:flex; flex-direction:column; min-height:0; overflow:hidden; }
+.billing-generator .modal-body { min-height:0; overscroll-behavior:contain; }
+.billing-generator-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+.billing-generator-grid label { display:flex; flex-direction:column; gap:8px; min-width:0; font-size:13px; font-weight:600; }
+.billing-generator-grid input,.billing-generator-grid select { width:100%; min-width:0; }
+.billing-generator-help { color:var(--t2); font-size:12px; line-height:1.65; margin:14px 0; }
+.billing-generator-fees { margin:18px 0; padding:12px; border:1px solid var(--border); border-radius:10px; min-width:0; }
+.billing-generator-fees legend { padding:0 8px; font-size:13px; font-weight:600; }
+.billing-generator-fees label { display:flex; align-items:center; gap:12px; padding:10px; font-size:14px; }
+.billing-generator-fees small { display:block; color:var(--t2); margin-top:4px; }
+.billing-generator-preview { padding:16px; background:var(--bg3); border:1px solid var(--border); border-radius:10px; overflow-wrap:anywhere; }
+.billing-generator-preview-row { display:grid; gap:6px; padding:14px 0; border-top:1px solid var(--border); font-size:13px; }
+.billing-generator .modal-footer { gap:12px; background:var(--bg2); }
+@media(max-width:600px) {
+  .billing-generator-grid { grid-template-columns:1fr; gap:14px; }
+  .billing-generator .modal-header,.billing-generator .modal-body,.billing-generator .modal-footer { padding:14px; }
+  .billing-generator .modal-footer { flex-wrap:wrap; }
+  .billing-generator .modal-footer .btn { flex:1; justify-content:center; }
+}
+.mixed-bill-item { padding:14px 0; border-bottom:1px solid var(--border); }
+.mixed-bill-item:last-child { border-bottom:0; }
+.billing-generator-fees .billing-generator-grid label { display:flex; align-items:stretch; padding:8px; font-size:12px; }
+.billing-generator-fees summary { cursor:pointer; font-size:13px; font-weight:600; }
+.mixed-bill-item p { font-size:12px; color:var(--t2); margin:8px 0; }
+
+/* Dedicated student billing workspace. */
+.bill-workspace { max-width:1500px; margin:0 auto; }
+.bill-workspace > .modal-header { display:flex; align-items:center; justify-content:space-between; padding:0 0 22px; }
+.bill-workspace > form { overflow:visible; }
+.bill-workspace .modal-body { padding:0; overflow:visible; }
+.bill-workspace > form > .modal-body > .billing-generator-grid { grid-template-columns:repeat(3,minmax(0,1fr)); padding:20px; background:var(--bg2); border:1px solid var(--border); border-radius:12px; }
+.bill-workspace-columns { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:24px; align-items:start; }
+.bill-workspace .billing-generator-preview { margin-top:14px; }
+.bill-student-summary { display:flex; justify-content:space-between; gap:20px; padding:20px; margin-top:18px; background:var(--bg2); border:1px solid var(--border); border-radius:12px; }
+.bill-student-summary strong,.bill-student-summary small { display:block; margin:4px 0; }
+.bill-student-summary small,.bill-student-summary p { color:var(--t2); font-size:12px; }
+.bill-empty { padding:60px 20px; text-align:center; color:var(--t2); }
+.bill-empty p { margin-top:12px; }
+.bill-workspace .modal-footer { position:sticky; bottom:0; margin-top:24px; border:1px solid var(--border); border-radius:10px; padding:16px; z-index:2; }
+.bill-table-scroll { overflow-x:auto; }
+.bill-preview-table { width:100%; border-collapse:collapse; margin:14px 0; }
+.bill-preview-table th,.bill-preview-table td { padding:10px 6px; border-bottom:1px solid var(--border); font-size:12px; text-align:right; }
+.bill-preview-table th:first-child,.bill-preview-table td:first-child { text-align:left; }
+.bill-preview-table small { display:block; margin-top:6px; color:var(--t2); font-size:10px; }
+@media(max-width:1000px) { .bill-workspace-columns { grid-template-columns:1fr; } }
+@media(max-width:600px) {
+ .bill-workspace > form > .modal-body > .billing-generator-grid { grid-template-columns:1fr; }
+ .bill-workspace > .modal-header,.bill-student-summary { flex-direction:column; align-items:stretch; }
+}
+.student-fee-statement h4 { margin:26px 0 12px; }
+.student-fee-statement .table-wrap { margin:16px 0; }
+.statement-actions { display:flex; gap:10px; flex-wrap:wrap; }
+.statement-totals { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin:20px 0; }
+.statement-totals > div { background:var(--bg3); padding:20px; border:1px solid var(--border); border-radius:12px; }
+.statement-totals small { display:block; color:var(--t2); margin-bottom:10px; }
+.statement-totals strong { font-size:22px; }
+@media(max-width:600px) { .statement-totals { grid-template-columns:1fr; } }
+.student-fee-statement { padding:24px; }
+@media(max-width:600px) { .student-fee-statement { padding:14px; } }
+.invoice-due { color:var(--t2); font-size:12px; margin-top:6px; }
+.invoice-overdue { color:var(--red); font-size:12px; font-weight:700; margin-top:6px; }
+
+/* Complete class fee setup */
+.class-fee-bulk { padding: 24px; border: 1px solid var(--border); border-radius: 16px; background: var(--bg2); }
+.class-fee-bulk > p, .class-fee-bulk form > p { color: var(--t2); margin: 14px 0; line-height: 1.6; }
+.class-fee-bulk-actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0; }
+.class-fee-bulk-table { min-width: 1100px; width: 100%; }
+.class-fee-bulk-table td { padding: 16px 10px; vertical-align: top; }
+.class-fee-bulk-table td:first-child { min-width: 210px; }
+.class-fee-bulk-table input, .class-fee-bulk-table select { min-width: 110px; }
+.class-fee-bulk-table small { display: block; font-size: 11px; margin-top: 6px; }
+.class-fee-bulk .billing-generator-grid { margin-top: 20px; }
+@media(max-width: 650px) { .class-fee-bulk { padding: 14px; } .class-fee-bulk-actions .btn { width: 100%; } }

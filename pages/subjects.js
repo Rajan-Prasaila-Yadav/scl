@@ -1,3 +1,4 @@
+import { subjectAssignmentError, teachingMember } from '../lib/academicAssignments'
 import { allowDeletion } from '../lib/recordIntegrity'
 import { requirePermission } from '../lib/permissions'
 import React, { useEffect, useMemo, useState } from 'react'
@@ -23,6 +24,7 @@ const emptyForm = {
   bookName: '',
   bookCode: '',
   status: 'active',
+  teacherByClass: {},
   classIds: [], // Selected classes where this subject is taught
 }
 
@@ -96,16 +98,17 @@ export default function Subjects() {
 
   // Handle subject active/inactive block toggle
   const toggleSubjectStatus = (subjectId) => {
-    setSubjects((prev) =>
-      prev.map((s) => {
-        if (s.id === subjectId) {
-          const nextStatus = s.status === 'active' ? 'inactive' : 'active'
-          showToast(`Subject "${s.name}" is now ${nextStatus === 'active' ? 'active' : 'inactive'}.`, 'info')
-          return { ...s, status: nextStatus }
-        }
-        return s
-      })
-    )
+    if (!requirePermission('edit')) return
+    const subject = subjects.find(item => item.id === subjectId)
+    if (!subject) return
+    const status = subject.status === 'active' ? 'inactive' : 'active'
+    const linked = classes.filter(c => (c.subjectIds || []).includes(subjectId))
+    const issue = subjectAssignmentError({status, classIds: linked.map(c => c.id), teacherByClass: Object.fromEntries(linked.map(c => [c.id, c.subjectTeacherMap?.[subjectId] || '']))}, subjectId, classes, staff, readStoredList(STORAGE_KEYS.timetable, []), readStoredList('educore.examRoutine', []))
+    if (issue) { showToast(issue, 'error'); return }
+    const updated = subjects.map(item => item.id === subjectId ? {...item, status} : item)
+    if (!writeStoredList(STORAGE_KEYS.subjects, updated)) return
+    setSubjects(updated)
+    showToast(`Subject "${subject.name}" is now ${status}.`, 'info')
   }
 
   // Filtered and Sorted Subjects
@@ -265,6 +268,9 @@ export default function Subjects() {
       return
     }
 
+    const assignmentIssue = subjectAssignmentError(form, editingId, classes, staff, readStoredList(STORAGE_KEYS.timetable, []), readStoredList('educore.examRoutine', []))
+    if (assignmentIssue) { showToast(assignmentIssue, 'error'); return }
+
     const payload = {
       name,
       category: form.category,
@@ -307,7 +313,10 @@ export default function Subjects() {
         const nextSubjIds = subjectIds.includes(subjectId)
           ? subjectIds
           : [...subjectIds, subjectId]
-        return { ...c, subjectIds: nextSubjIds }
+        const nextMap = { ...subjectTeacherMap }
+        if (form.teacherByClass?.[c.id]) nextMap[subjectId] = Number(form.teacherByClass[c.id])
+        else delete nextMap[subjectId]
+        return { ...c, subjectIds: nextSubjIds, subjectTeacherMap: nextMap }
       } else {
         // Unlink from class
         const nextSubjIds = subjectIds.filter((id) => id !== subjectId)
@@ -341,6 +350,7 @@ export default function Subjects() {
       bookCode: subject.bookCode || '',
       status: subject.status,
       classIds: linkedClassIds,
+      teacherByClass: Object.fromEntries(classes.map(c => [c.id, c.subjectTeacherMap?.[subject.id] || ''])),
     })
     setViewMode('edit')
   }
@@ -730,7 +740,7 @@ export default function Subjects() {
                 <div className="section-divider-line"></div>
               </div>
               <p style={{ fontSize: '12px', color: 'var(--t2)', marginBottom: '12px' }}>
-                Select classroom groups where this subject must be linked. 
+                Select classes and assign a subject teacher for each. Timetable will use these assignments.
               </p>
 
               <div className="academic-subject-picker" style={{ gap: '10px' }}>
@@ -746,6 +756,10 @@ export default function Subjects() {
                       <span>
                         {c.name} {c.section ? ` - ${c.section}` : ''}
                       </span>
+                      {isChecked && <select className="form-select" aria-label={`Teacher for ${c.name} ${c.section}`} value={form.teacherByClass?.[c.id] || ''} onChange={event => updateForm('teacherByClass', {...form.teacherByClass, [c.id]:event.target.value})}>
+                        <option value="">Unassigned</option>
+                        {staff.filter(member => teachingMember(staff,member.id)).map(member => <option key={member.id} value={member.id}>{member.name}</option>)}
+                      </select>}
                     </label>
                   )
                 })}

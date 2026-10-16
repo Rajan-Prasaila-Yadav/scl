@@ -1,3 +1,4 @@
+import { collectionEntries, invoiceBalance, invoiceDue } from '../lib/feeLedger'
 import { currencySymbol } from '../lib/schoolConfig'
 import { requirePermission } from '../lib/permissions'
 import React, { useState, useEffect, useMemo } from 'react'
@@ -88,7 +89,7 @@ export default function Finance() {
       const cls = classes.find(c => c.id === student.classId)
       const className = cls ? `${cls.name}${cls.section ? ` - ${cls.section}` : ''}` : 'Unknown'
       
-      student.payments?.forEach(payment => {
+      (student.payments || []).flatMap(collectionEntries).forEach(payment => {
         if (payment.status === 'paid' && payment.paymentDate && payment.paymentDate !== '—') {
           const datePart = payment.paymentDate.split(' ')[0] // e.g. "08/04/2026"
           // Convert datePart DD/MM/YYYY to YYYY-MM-DD
@@ -345,7 +346,8 @@ export default function Finance() {
           className,
           invoiceNo: payment.invoiceNo,
           amountPaid: payment.amountPaid,
-          amountTotal: payment.amount,
+          amountTotal: invoiceDue(payment),
+          balance: invoiceBalance(payment),
           month: payment.month,
           status: payment.status,
           paymentMode: payment.paymentMode || 'Cash',
@@ -380,11 +382,8 @@ export default function Finance() {
     })
     allFeeCollections.forEach(c => {
       if (summary[c.classId]) {
-        if (c.status === 'paid') {
-          summary[c.classId].collected += c.amountPaid
-        } else {
-          summary[c.classId].pending += c.amountTotal
-        }
+        summary[c.classId].collected += Number(c.amountPaid || 0)
+        summary[c.classId].pending += c.balance
       }
     })
     return Object.values(summary)

@@ -1,3 +1,5 @@
+import {academicYearRange,academicRangeError} from '../lib/academicBilling'
+import AcademicYearDates from '../components/AcademicYearDates'
 import Dialog from '../components/Dialog'
 import { getRaw, setRaw } from '../lib/storage'
 import { BrandingEditor, EmergencyContacts, ComplianceEditor } from '../components/SettingsRecords'
@@ -127,12 +129,15 @@ export default function Settings(){
   }
 
   const handleAcademicYearChange = (val) => {
+    if(!requirePermission('edit','Settings')) return
+    const error=academicRangeError(academicYearRange(val)); if(error) {showToastMsg(error,'error');return}
+    if(!setRaw('academicYear', val)) return
     setAcademicYear(val)
-    setRaw('academicYear', val)
     window.dispatchEvent(new Event('academicYearChanged'))
   }
 
   const handleAddAcademicYear = () => {
+    if(!requirePermission('edit','Settings')) return
     const cleanInput = newYearInput.trim()
     if (!cleanInput) return
     const pattern = /^\d{4}[–-]\d{4}$/
@@ -146,8 +151,8 @@ export default function Settings(){
       return
     }
     const updated = [...academicYears, formatted].sort()
+    if(!setRaw('academicYears', JSON.stringify(updated))) return
     setAcademicYears(updated)
-    setRaw('academicYears', JSON.stringify(updated))
     setNewYearInput('')
     setShowAddYearForm(false)
     showToastMsg(`Academic year ${formatted} added!`, 'success')
@@ -160,7 +165,7 @@ export default function Settings(){
           <div className="settings-header">
             <div>
               <h1>School Settings</h1>
-              <p>Manage your school information, branding, preferences &amp; compliance. Academic year is a display label; records are not partitioned by session.</p>
+              <p>Manage your school information, branding, preferences &amp; compliance. New fee invoices record the selected academic year. Other academic records are not yet partitioned by session.</p>
             </div>
             <div className="settings-actions">
               <button className="btn btn-ghost btn-sm" onClick={() => setShowPreview(true)}>
@@ -266,6 +271,7 @@ export default function Settings(){
                     </button>
                   </div>
                 </div>
+                <AcademicYearDates key={academicYear} year={academicYear}/>
                 {showAddYearForm && (
                   <div className="form-group" style={{gridColumn:'1/-1', background:'var(--bg2)', padding:'14px 18px', borderRadius:'var(--radius-sm)', border:'1px solid var(--border)', marginTop:6}}>
                     <label style={{fontSize:11, color:'var(--t2)', textTransform:'uppercase', fontWeight:600}}>Add Academic Year</label>

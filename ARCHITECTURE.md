@@ -66,4 +66,4 @@ Suggested additions: `features/<module>/` for hooks/forms, `services/` for stabl
 7. Move attachment bytes to backend-managed storage with validated uploads and authorized downloads. Client-side checks remain useful feedback but do not grant access.
 8. Test the same service behavior against demo and API implementations, then test complete browser flows including network errors, reloads and authorization failures.
 
-The backend framework/database has not been selected. There are no API URLs, credentials or environment-variable requirements for the current prototype. Theme preferences may remain local after integration; school records should use the backend as the authoritative source.
+The [backend planning documents](docs/backend-planning/README.md) recommend managed PostgreSQL through Supabase and modular Next.js/TypeScript server code. This is a proposal pending requirements/budget decisions; no backend has been provisioned. There are no API URLs, credentials or environment-variable requirements for the current prototype. Theme preferences may remain local after integration; school records should use the backend as the authoritative source.
