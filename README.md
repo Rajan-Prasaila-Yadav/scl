@@ -1,52 +1,414 @@
 <div align="center">
 
-# 🏫 EduCore
+  <img src="https://img.shields.io/badge/EduCore-Enterprise%20School%20ERP-6366F1?style=for-the-badge&logo=school&logoColor=white" alt="EduCore Banner" height="60" />
 
-### School Management · UI Prototype
+  # 🏫 EduCore - Next-Gen Enterprise School Management System
 
-**A school administration workspace with configurable academics, class fees, student billing and payment history.**
+  **A school ERP UI prototype built with Next.js, React, and Vanilla CSS, with dynamic academics and student fee workflows.**
 
-![Next.js](https://img.shields.io/badge/Next.js-16.4.0-black?style=for-the-badge&logo=nextdotjs)
-![React](https://img.shields.io/badge/React-18.2.0-61DAFB?style=for-the-badge&logo=react&logoColor=black)
-![Node](https://img.shields.io/badge/Node.js-22.x-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
-![Stage](https://img.shields.io/badge/Stage-UI_Prototype-6366F1?style=for-the-badge)
+  [![Next.js](https://img.shields.io/badge/Next.js-16.4.0-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
+  [![React](https://img.shields.io/badge/React-18.2.0-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org/)
+  [![Vercel Deployment](https://img.shields.io/badge/Vercel-Owner%20Reported%20Demo-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://school-gules.vercel.app/)
+  [![CSS3](https://img.shields.io/badge/CSS3-Vanilla%20Design%20System-1572B6?style=for-the-badge&logo=css3&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/CSS)
+  ![Stage](https://img.shields.io/badge/Stage-UI%20Prototype-6366F1?style=for-the-badge)
+  [![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen.svg?style=for-the-badge)](CONTRIBUTING.md)
 
-[🚀 Setup](#setup) · [✨ Features](#features) · [💰 Fee workflow](#fee-workflow) · [📚 Documentation](#documentation) · [🛠️ Validation](#validation)
+  <br />
+
+  ### 🌐 Earlier demo URL (current deployment unverified): [https://school-gules.vercel.app/](https://school-gules.vercel.app/)
+
+  ---
+
+  [🚀 Live Demo](https://school-gules.vercel.app/) • [Key Features](#-key-feature-ecosystem) • [Architecture](#-system-architecture--data-flow) • [Tech Stack](#-technology-stack) • [Installation](#-installation--getting-started) • [RBAC Matrix](#-role-based-access-control-rbac)
+
 
 </div>
+
+<br />
 
 ---
 
 > [!IMPORTANT]
-> **This is a browser-local prototype.** There is no connected database, authentication service, payment gateway or message delivery. Roles demonstrate UI permissions; they are not server-enforced security. Backend designs are proposals.
+> **Current status — 16 October 2026:** UI/UX prototype with browser-local records, not a production school operations service. No database, authentication, payment gateway or message delivery is connected. The demo link above comes from the supplied README; its current deployed version has not been verified. Role names describe prototype permissions, not implemented portals for every role.
 
-## 📍 Current milestone
+## 📌 Table of Contents
 
-Updated **16 October 2026**. Development includes dynamic subject/class/teacher assignments, a dedicated student bill builder, partial payments, concessions, overdue tracking, configurable AD/BS academic years, bulk class fee setup and repaired individual fee settings.
+- [🌟 Mission, Vision, Aim & Core Philosophy](#-mission-vision-aim--core-philosophy)
+  - [🎯 Mission](#-mission)
+  - [👁️ Vision](#️-vision)
+  - [⚡ Aim](#-aim)
+  - [🧠 Thinking & Mindset](#-thinking--mindset)
+- [🚀 Technology Stack](#-technology-stack)
+- [📊 System Architecture \& Data Flow](#-system-architecture--data-flow)
+- [✨ Key Feature Ecosystem](#-key-feature-ecosystem)
+  - [📊 1. Executive Dashboard \& Analytics](#1-executive-dashboard--analytics)
+  - [👥 2. People \& Directory Management](#2-people--directory-management)
+  - [🏫 3. Academic Structure \& Timetable Scheduler](#3-academic-structure--timetable-scheduler)
+  - [📊 4. Examinations, Admit Cards \& Report Cards](#4-examinations-admit-cards--report-cards)
+  - [⏱️ 5. Real-Time Attendance Tracker](#5-real-time-attendance-tracker)
+  - [💰 6. Financial Suite (Fees, Payroll \& Auditing)](#6-financial-suite-fees-payroll--auditing)
+  - [📚 7. Library Information System](#7-library-information-system)
+  - [🚌 8. Fleet \& Transport Operations](#8-fleet--transport-operations)
+  - [🔐 9. Granular Role-Based Access Control (RBAC)](#9-granular-role-based-access-control-rbac)
+  - [🎨 10. System Customization \& UI Engine](#10-system-customization--ui-engine)
+  - [🎂 11. Campus Feed \& Milestone Celebrations](#11-campus-feed--milestone-celebrations)
+- [🔐 Role-Based Access Control (RBAC) Matrix](#-role-based-access-control-rbac-matrix)
+- [📁 Project Directory Structure](#-project-directory-structure)
+- [💻 Installation \& Getting Started](#-installation--getting-started)
+  - [📋 Prerequisites](#-prerequisites)
+  - [🛠️ Step-by-Step Setup](#️-step-by-step-setup)
+  - [🌐 Pinggy Remote Tunnel Sharing](#-pinggy-remote-tunnel-sharing)
+- [🎨 UI/UX Design System \& Theme Engine](#-uiux-design-system--theme-engine)
+- [💾 Data Persistence \& Seed Architecture](#-data-persistence--seed-architecture)
+- [🗺️ Future Roadmap](#-future-roadmap)
+- [🤝 Contributing](#-contributing)
+- [💰 Updated fee-system workflows](#updated-fee-system)
+- [📚 Current documentation and verification](#current-documentation)
+- [📜 License](#-license)
 
-The owner has reported an earlier deployment. The current live deployment and its commit have not been independently verified. A GitHub push does not by itself confirm deployment.
+---
 
-<a id="features"></a>
-## ✨ Feature map
+## 🌟 Mission, Vision, Aim & Core Philosophy
 
-| Area | Available prototype workflows |
+### 🎯 Mission
+To revolutionize educational administration by replacing bloated, fragmented software with a unified, lightning-fast, and visually captivating management suite. **EduCore** simplifies daily workflows for school administrators, teachers, accountants, librarians, students, and parents through intelligent automation and human-centric design.
+
+### 👁️ Vision
+To set the global benchmark for modern school ERP solutions—enabling educational institutions worldwide to focus on what matters most: **delivering exceptional learning experiences**—supported by responsive administrative tools and crystal-clear data governance.
+
+### ⚡ Aim
+- **Simple Workflows**: Develop a school ERP with a lightweight, custom UI.
+- **Responsive Design**: Build layouts for desktop and mobile; targeted checks do not guarantee every device.
+- **Local Prototyping**: Persist demo records in browser storage and provide CSV exports and browser-print views. Full offline synchronization is future work.
+- **Role Preview**: Demonstrate UI permissions. Authentication and server-enforced authorization are future work.
+
+### 🧠 Thinking & Mindset
+```
+                              ┌────────────────────────┐
+                              │ Human-Centric UI/UX   │
+                              └───────────┬────────────┘
+                                          │
+                  ┌───────────────────────┴───────────────────────┐
+                  ▼                                               ▼
+     ┌────────────────────────┐                      ┌────────────────────────┐
+     │  Granular Security &   │                      │  Browser-Local    │
+     │  Dynamic RBAC Guard    │                      │  State Persistence     │
+     └────────────────────────┘                      └────────────────────────┘
+                  │                                               │
+                  └───────────────────────┬───────────────────────┘
+                                          ▼
+                              ┌────────────────────────┐
+                              │  Empowered Educational │
+                              │      Institutions      │
+                              └────────────────────────┘
+```
+
+> [!IMPORTANT]
+> **EduCore** is engineered with a **Client-First Mindset**. Supported mutations persist in browser storage; missing demo keys are seeded without intentionally replacing existing records. Browser storage can fail or be cleared.
+
+---
+
+## 🚀 Technology Stack
+
+| Layer | Technology | Version | Purpose / Functionality |
+| :--- | :--- | :--- | :--- |
+| **Frontend Framework** | **Next.js** | `16.4.0` | React framework providing Pages routing, server-side dynamic head tags, fast refreshes, and production bundling. |
+| **UI Library** | **React** | `18.2.0` | Declarative UI state management, hooks (`useState`, `useEffect`, `useMemo`, `useRef`), and reactive component hierarchy. |
+| **Styling Engine** | **Vanilla CSS3** | Custom | Custom Design System (`globals.css`) built with HSL CSS variables, glassmorphism, fluid flexbox/grid layout math, and responsive breakpoints. |
+| **Icons & Typography** | **FontAwesome 6** + **Inter Font** | `6.x` | High-fidelity vector iconography (`fa-solid`, `fa-brands`) paired with Google Inter modern typography. |
+| **State Persistence** | **LocalStorage Engine** | Native | Reactive sync via `academicData.js` keys (`educore.students`, `educore.staff`, `educore.roles`, etc.) with fallback seed data. |
+| **Report Generation** | **Custom CSV / PDF Exporter** | Native | Client-side CSV generation (`exportToCSV`) and inline dynamic print-to-PDF engine (`printToPDF`) with custom header/footer styling. |
+| **Remote Tunneling** | **Pinggy SSH** | Latest | Embedded script (`npm run share`) for instant multi-device external testing over public HTTPS. |
+
+---
+
+## 📊 System Architecture & Data Flow
+
+```mermaid
+graph TD
+    A[Browser / Client] -->|HTTP Request| B(Next.js Pages Router)
+    B --> C{Layout Wrapper}
+    C -->|Permissions Check| D[RBAC Guard System]
+    
+    D -->|Permitted| E[Page Component Rendering]
+    D -->|Denied| F[Access Denied View + Super Admin Override]
+
+    E --> G[Reactive State / Hooks]
+    G <-->|Read / Write| H[(LocalStorage State Manager)]
+    
+    H -->|Initial Boot Empty?| I[Seed Default Academic Data]
+    
+    E --> J[Export Engine]
+    J -->|CSV Blob| K[Download .csv File]
+    J -->|PDF Print Window| L[Print / Save PDF Report]
+```
+
+---
+
+## ✨ Key Feature Ecosystem
+
+### 📊 1. Executive Dashboard & Analytics
+- **Local KPIs**: Track total students, active staff, fee collection metrics, average attendance percentage, and class statistics at a glance.
+- **Interactive Quick Actions**: Direct action cards for rapid student admissions, fee payments, attendance logging, and exam creation.
+- **Campus Activity Feed**: Local activity timeline showcasing recent system events, fee receipts, and updates.
+
+### 👥 2. People & Directory Management
+- **Student Information System (SIMS)**: Complete student records with roll numbers, assigned class & section, guardian details, blood group, contact numbers, status filters, and modal CRUD operations.
+- **HR & Faculty Directory**: Complete staff management (Teaching & Non-Teaching), designations, subject assignments, salary packages, and active/inactive status switches.
+- **Parent Directory**: Detailed guardian profiles linked to multiple children/wards, emergency contacts, occupation, and communication preferences.
+
+### 🏫 3. Academic Structure & Timetable Scheduler
+- **Class & Section Configurator**: Grade levels, section allotment, room numbers, class teacher assignment, and seat capacity controls.
+- **Subject & Curriculum Catalog**: Compulsory vs. optional subjects, course codes, publication names, textbook titles, and code references.
+- **Interactive Timetable Scheduler**: Period slot configurator, weekday schedule matrix, teacher allotment, and conflict-prevention layout.
+
+### 📊 4. Examinations, Admit Cards & Report Cards
+- **Exam Management**: Configure term exams (Unit Tests, Mid-Terms, Annuals), max marks, passing criteria, and subject-wise score entries.
+- **Admit Card Generator**: Automated student examination pass/admit card layout ready for instant batch printing.
+- **Report Card Engine**: Automated percentage computation, grade allocation (A+, A, B, C, F), class rank calculations, and official transcript PDF generation.
+
+### ⏱️ 5. Real-Time Attendance Tracker
+- **Daily Attendance Marking**: Student & staff mark sheets with status toggles (`Present`, `Absent`, `Late`, `Excused`).
+- **Date Picker & Class Filter**: Filter attendance records by specific calendar dates and class sections.
+- **Monthly Percentage Summaries**: Visual attendance indicators and summary metrics for institutional compliance.
+
+### 💰 6. Financial Suite (Fees, Payroll & Auditing)
+- **Fee Management & Invoicing**: Custom fee category breakdown (Tuition, Bus Fee, Exam Fee, Admission), due date trackers, and partial/full payment logs.
+- **Printable Fee Receipts**: Professional receipt generator with transaction IDs, payment methods, and breakdown tables.
+- **Staff Payroll System**: Staff salary processing, basic pay, allowances, deductions, net salary calculation, and payslip export.
+- **Financial Audit Ledger**: Comprehensive revenue vs. expense overview for financial transparency.
+
+### 📚 7. Library Information System
+- **Book Cataloging**: ISBN indexing, book titles, author details, publisher tags, copies available, and shelf placement.
+- **Borrowing & Return Engine**: Student/staff book issuance logging, return due dates, and fine calculation engine for overdue returns.
+
+### 🚌 8. Fleet & Transport Operations
+- **Vehicle Fleet Register**: Bus vehicle numbers, seating capacities, driver names, license numbers, and maintenance status.
+- **Route & Stop Allocator**: Pickup and drop-off route management, stop timing configuration, and fee mapping per route.
+
+### 🔐 9. Granular Role-Based Access Control (RBAC)
+- **Example Role Catalog**: Super Admin, Senior Teacher, Junior Teacher, Class Teacher, Exam Coordinator, Librarian, Accountant, Transport Manager, Hostel Warden, Reception Desk.
+- **Module Permission Matrix**: Control view, create, edit, delete, export, and approve actions per module.
+- **Live Topbar Role Switcher**: Instant role switching capability for testing permissions without re-authenticating.
+
+### 🎨 10. System Customization & UI Engine
+- **Dark / Light Mode**: Theme toggle saved across user sessions via root dataset attributes (`data-theme`).
+- **Dynamic Accent Color Swatches**: Real-time CSS variable manipulation (`--accent`, `--accent2`) with custom swatch choices (`#6366F1`, `#2563EB`, `#7C3AED`, `#D946EF`, `#EA580C`, `#16A34A`).
+- **Resizable Drag Sidebar**: Dynamic sidebar width dragging (180px to 420px) with collapsed mode support and hovering tooltips.
+- **Academic Year Switcher**: Configure active session years (e.g., `2025–2026`, `2026–2027`) and board affiliations (CBSE, ICSE, IB, State Board).
+
+### 🎂 11. Campus Feed & Milestone Celebrations
+- **Celebration Board**: Automated birthday alert system for students and staff with custom digital greeting previews.
+- **Events & Feed Timeline**: Chronological school feed for announcements, sports meets, holidays, and parent-teacher meetings.
+
+---
+
+## 🔐 Role-Based Access Control (RBAC) Matrix
+
+This table retains the original role overview. It is illustrative: consult the app's current permission settings for actual grants. Hostel rooms, visitor logs and standalone parent/student portals are not implemented modules. Scope labels are planning metadata and do not enforce record isolation.
+
+| Role Name | Role Code | Type | Default Permissions Highlights | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| **Super Admin** | `SUPER-ADMIN` | System | Full administrative access to all 15+ modules & system settings | `Active` |
+| **Senior Teacher** | `ROLE-TEACH-SR` | Teaching | Students, Classes, Subjects, Timetable, Exams (Approve), Attendance | `Active` |
+| **Junior Teacher** | `ROLE-TEACH-JR` | Teaching | View Students, Classes, Subjects, Attendance (Create/Edit) | `Active` |
+| **Class Teacher** | `ROLE-TEACH-CT` | Teaching | Assigned Students, Parents, Attendance (Full), Class Announcements | `Active` |
+| **Exam Coordinator** | `ROLE-TEACH-EC` | Teaching | Examinations (Full + Approve), Admit Cards, Report Cards, Marks | `Active` |
+| **Accountant** | `ROLE-NT-ACC` | Non-Teaching | Fees (Full + Approve), Payroll, Financial Audit, Receipts | `Active` |
+| **Librarian** | `ROLE-NT-LIB` | Non-Teaching | Library Catalog, Book Borrowings, Fines, Student/Staff Lookup | `Active` |
+| **Transport Manager** | `ROLE-NT-TRN` | Non-Teaching | Transport Routes, Vehicle Fleet, Bus Assignments | `Active` |
+| **Hostel Warden** | `ROLE-NT-HST` | Non-Teaching | Hostel Rooms, Student Allocation, Night Attendance | `Active` |
+| **Reception Desk** | `ROLE-NT-REC` | Non-Teaching | Visitor Logs, Student Lookup, Parent Directory, Announcements | `Active` |
+
+---
+
+## 📁 Project Directory Structure
+
+Original high-level route overview; the current repository also includes `tests/`, `scripts/`, `docs/`, billing/calendar helpers and shared fee editors. The named `_error.js` in this overview is historical, not a required current file.
+
+```
+educore-next/
+├── 📁 components/                  # Modular React UI Components
+│   ├── Layout.js                   # Main application layout, topbar & authorization interceptor
+│   ├── Sidebar.js                  # Dynamic resizable sidebar with drag resizer & collapse mode
+│   ├── RolesPage.js                # Full RBAC management console & permission matrix
+│   ├── RoleDetailModal.js          # Modal view for role details & permission audits
+│   ├── RoleFormModal.js            # Modal editor for creating & modifying roles
+│   └── SettingsTabs.js             # School settings, board selection, accent swatches & toasts
+│
+├── 📁 lib/                         # Core Business Logic & Data Engine
+│   ├── academicData.js             # Seed database, LocalStorage keys & default initializers
+│   └── exportUtils.js              # Client-side CSV generator & dynamic HTML print engine
+│
+├── 📁 pages/                       # Next.js Pages Routing System
+│   ├── _app.js                     # Application entry point, global CSS & accent color restorer
+│   ├── _document.js                # Custom HTML document wrapper with FontAwesome & Google Fonts
+│   ├── _error.js                   # Custom error boundary component
+│   ├── index.js                    # Executive Dashboard overview
+│   ├── dashboard.js                # Executive Dashboard view mapping
+│   ├── students.js                 # Student Information Management System (SIMS)
+│   ├── staff.js                    # HR & Faculty Management
+│   ├── parents.js                  # Parent & Guardian Portal
+│   ├── classes.js                  # Class & Section Configuration
+│   ├── subjects.js                 # Curriculum & Subject Mapping
+│   ├── timetable.js                # Interactive Weekly Timetable Scheduler
+│   ├── examinations.js             # Exam Scores, Marks Entry & Report Cards
+│   ├── exam-routine.js             # Exam Timetable & Admit Card Generator
+│   ├── attendance.js               # Daily Attendance Tracker
+│   ├── library.js                  # Library Catalog & Borrowings
+│   ├── transport.js                # Fleet & Transport Management
+│   ├── fees.js                     # Fee Structure & Receipts Engine
+│   ├── salary.js                    # Payroll & Staff Salary Slips
+│   ├── finance.js                  # Financial Audit & Accounting
+│   ├── roles.js                    # Role-Based Access Control Panel
+│   ├── settings.js                 # School Configuration & Personalization
+│   ├── birthdays.js                # Celebration Feed & Birthday Cards
+│   └── timeline.js                 # Campus News & Event Announcements
+│
+├── 📁 styles/                      # Global Stylesheet & Design System Tokens
+│   └── globals.css                 # 100% Vanilla CSS design system variables, components & utilities
+│
+├── 📄 next.config.js               # Next.js configuration
+├── 📄 package.json                 # Project manifest, dependencies & npm scripts
+├── 📄 package-lock.json            # Dependency lockfile
+├── 📄 .gitignore                   # Git ignore patterns
+└── 📄 README.md                    # Project documentation (You are here!)
+```
+
+---
+
+## 💻 Installation & Getting Started
+
+Follow this guide to run **EduCore** locally. Installation time depends on your machine and network.
+
+### 📋 Prerequisites
+
+Ensure you have the following installed on your operating system:
+- **Node.js**: `22.x` ([Download Node.js](https://nodejs.org/))
+- **npm**: the version bundled with Node.js 22
+- **Git**: `v2.x` or higher ([Download Git](https://git-scm.com/))
+
+Check your local environment versions:
+```bash
+node -v
+npm -v
+git --version
+```
+
+---
+
+### 🛠️ Step-by-Step Setup
+
+#### 1. Clone the Repository
+```bash
+git clone https://github.com/Rajan-Prasaila-Yadav/scl.git
+cd scl
+git switch feature/dynamic-academics-and-fees
+```
+
+#### 2. Install Dependencies
+Install all core dependencies cleanly:
+```bash
+npm ci
+```
+
+#### 3. Launch Development Server
+Start the local development server with hot-reloading:
+```bash
+npm run dev
+```
+
+Once started, open your web browser and navigate to:
+```
+http://localhost:3000
+```
+
+> [!TIP]
+> The app comes seeded with demo records for school modules; attendance begins unmarked. No database setup required.
+
+#### 4. Build for Production (Optional)
+To test or deploy a production-optimized build:
+```bash
+npm run validate
+npm run start
+```
+
+---
+
+### 🌐 Pinggy Remote Tunnel Sharing
+
+Want to test **EduCore** on a mobile phone or share a live demo URL with stakeholders instantly without deploying?
+
+Run the pre-configured Pinggy SSH script:
+```bash
+npm run share
+```
+This command exposes `localhost:3000` over a secure HTTPS public pinggy URL (e.g. `https://xxx.pinggy.link`) ready for instant device testing!
+
+---
+
+> [!NOTE]
+> On Windows PowerShell, use `npm.cmd` if `npm` is blocked by execution policy. Restart production preview after every rebuild. Browser data is separate for each hostname, port and browser. Tunnel sharing exposes the unauthenticated prototype publicly; use demo data only.
+
+## 🎨 UI/UX Design System & Theme Engine
+
+EduCore features a custom-built Vanilla CSS architecture defined in `styles/globals.css`. It uses **CSS Custom Properties** (Variables) for instant theme switching and accent customization.
+
+### Core CSS Tokens
+
+Illustrative tokens from the reference design; `styles/globals.css` is authoritative for current values.
+```css
+:root {
+  --accent: #6366F1;          /* Primary Accent (Indigo) */
+  --accent2: #6366F1CC;        /* Translucent Accent */
+  --bg: #0F172A;              /* Page Background */
+  --bg2: #1E293B;             /* Card / Container Background */
+  --bg3: #334155;             /* Input / Border Background */
+  --t1: #F8FAFC;              /* Primary Text Color */
+  --t2: #94A3B8;              /* Secondary Muted Text */
+  --radius-sm: 6px;           /* Small Border Radius */
+  --radius-md: 10px;          /* Medium Border Radius */
+  --radius-lg: 16px;          /* Card Border Radius */
+  --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+}
+```
+
+---
+
+## 💾 Data Persistence & Seed Architecture
+
+EduCore uses a reactive **Client-Side Storage Engine** managed through `lib/storage.js`, with fixtures in `lib/academicData.js` and startup seeding in `lib/seed.js`. Supported record changes persist to the browser's `localStorage` under isolated key namespaces:
+
+| Storage Key | Data Contents |
 | :--- | :--- |
-| 📊 Overview | Dashboard, campus timeline and birthday/celebration views |
-| 👥 People | Student, staff and parent directories with linked records |
-| 🏫 Academics | Classes, subject curriculum, teacher assignments and timetable validation |
-| 📝 Exams | Examinations, routines, marks and printable academic views |
-| ✅ Attendance | Student/staff marking, saved records and future-date rejection |
-| 💰 Fees | Heading configuration, individual/bulk class rates, concessions, invoices and collections |
-| 🧾 Statements | Student fee history, partial/full payments, remaining balances and overdue labels |
-| 📚 Library | Catalog, issue/return workflows and fines |
-| 🚌 Transport | Route and transport administration screens |
-| 💼 Finance | Payroll, finance summaries and closed-day payment-history protection |
-| ⚙️ Settings | School details, appearance, academic years, billing calendars and role previews |
+| `educore.students` | Full list of enrolled students, classes, parents, blood groups |
+| `educore.staff` | Employee list, designations, salaries, role codes |
+| `educore.roles` | Custom and default RBAC role objects with permission arrays |
+| `educore.classes` | Grade levels, room numbers, allocated class teachers |
+| `educore.subjects` | Subject names, publication details, course codes |
+| `educore.timetable` | Weekly schedule slots per class & period |
+| `educore.books` | Library catalog, available quantities, ISBNs |
+| `educore.vehicles` | Transport bus fleet, driver contact details, routes |
 
-There are **19 sidebar modules**. `/dashboard` also exposes the root dashboard implementation. For page responsibilities and backend boundaries, see [Architecture](ARCHITECTURE.md).
+---
 
-<a id="fee-workflow"></a>
-## 💰 Configure → Bill → Collect → Review
+## 🗺️ Future Roadmap
+
+Checked phases refer to prototype implementation, not production readiness. Later technologies are possibilities, not installed services; see [backend planning](docs/backend-planning/README.md) for current recommendations.
+
+- [x] **Phase 1: Core Foundation Prototype** (SIMS, HR, Timetable, Exams, Fees, Library, RBAC)
+- [x] **Phase 2: UI Engine & Exporter Prototype** (Dark/Light mode, Accent Picker, CSV Export, PDF Printer)
+- [ ] **Phase 3: Backend & Database Integration** (Node.js Express / Next.js API Routes + PostgreSQL / Supabase)
+- [ ] **Phase 4: Real-time Communication** (Socket.io Parent-Teacher Chat & Push Notifications)
+- [ ] **Phase 5: Mobile App Companion** (React Native / PWA for Android & iOS)
+- [ ] **Phase 6: AI Analytics** (Predictive student performance trends & automated timetabling)
+
+---
+
+<a id="updated-fee-system"></a>
+## 💰 Updated fee-system workflows — 16 October 2026
+
+The following extends the original Financial Suite description with the work implemented on `feature/dynamic-academics-and-fees`.
 
 ### 1. Set the academic year
 
@@ -89,98 +451,51 @@ Class detail, student statement and Fee Management use shared billing records. D
 > [!NOTE]
 > Academic years support billing settings, invoice metadata and reporting, but there is no historical enrollment engine or versioned class-rate history. Review back-year rates explicitly. No automatic arrears migration, scheduled penalties or reminders are implemented.
 
-<a id="setup"></a>
-## 🚀 Setup
+<a id="current-documentation"></a>
+## 📚 Current documentation and verification
 
-**Requirements:** Node.js **22.x**, npm and Git for cloning. No database, Docker or environment file is required for this prototype.
-
-```powershell
-git clone https://github.com/Rajan-Prasaila-Yadav/scl.git
-cd scl
-git switch feature/dynamic-academics-and-fees
-npm.cmd ci
-npm.cmd run dev -- --hostname 127.0.0.1 --port 3100
-```
-
-Open [the local app](http://127.0.0.1:3100). On macOS/Linux, use `npm` instead of `npm.cmd`.
-
-For a production preview:
-
-```powershell
-npm.cmd run validate
-npm.cmd run start -- --hostname 127.0.0.1 --port 3100
-```
-
-Stop any server already using that port first. **Restart the production server after rebuilding** so it serves matching HTML and JavaScript assets.
-
-## 💾 Data, permissions and exports
-
-- Records persist in localStorage. Attachments use IndexedDB (`educore-files`); new attachment files are limited to 10 MB each and branding images to 250 KB each.
-- A different browser, hostname or port has separate data. Clearing browser storage removes local records and files. GitHub stores source files, not your browser records.
-- The storage error banner's JSON backup covers metadata, not attachment bytes. Legacy attachment metadata needs the original file uploaded for download.
-- Role switching is a demonstration. Campus/class scope metadata does not provide server authorization or tenant isolation.
-- CSV actions export CSV; PDF actions use printable browser views and Save as PDF.
-- Communication preferences and birthday drafts do not send messages. Fonts/icons may need internet; browser-local persistence is not a complete offline synchronization system.
-- Currency changes presentation, not conversion. Default bank/tax settings are metadata; bill and collection forms determine their own adjustments.
-
-## 🧰 Technology and structure
-
-| Layer | Implementation |
+| Guide | Contents |
 | :--- | :--- |
-| UI/routing | Next.js 16.4.0 Pages Router; React / React DOM 18.2.0 |
-| Styling | Vanilla CSS, shared theme variables and responsive layouts |
-| Calendar | `nepali-date-converter` 3.4.0; BS 2000–2090 conversion support |
-| Persistence | Browser localStorage and IndexedDB |
-| Tests | Node test runner, source checks and Next.js production build |
-| Backend | Proposed architecture only; not connected |
+| [Project status](PROJECT-STATUS.md) | Current milestone and limitations |
+| [Dynamic academics and fees](docs/DYNAMIC-ACADEMICS-AND-FEES.md) | Detailed changes, calendar rules and browser verification |
+| [Architecture](ARCHITECTURE.md) | Implemented modules and future backend boundaries |
+| [Backend planning](docs/backend-planning/README.md) | Database, Nepal performance, security, Docker and roadmap |
+| [ERP diagrams](docs/backend-planning/diagrams/README.md) | Proposed people, roles and module relationships |
+| [Release notes](CHANGELOG.md) | Checkpoints and change history |
+| [Deployment guide](DEPLOYMENT.md) | Publishing and frozen release preservation |
 
-```text
-pages/       Application routes and page state
-components/  Shared UI, billing forms, statements and class fee editors
-lib/         Billing, calendars, validation, storage and fixture logic
-styles/      Shared CSS and themes
-public/      Static assets
-scripts/     Source validation tooling
-tests/       Regression tests
-docs/        Feature workflows and proposed backend planning
-audit/       Historical audits and local verification evidence
-```
+Latest application verification on **16 October 2026** passed **41 regression tests**, source checks and the production build. Targeted browser checks confirmed individual heading saves and class status persistence after reload. This README-only revision did not rerun application tests.
 
-<a id="documentation"></a>
-## 📚 Documentation hub
+`npm run validate` runs source checks, tests and production build. Node.js 22.x is required; React and React DOM are pinned to 18.2.0 and Next.js to 16.4.0. Calendar conversion uses `nepali-date-converter` 3.4.0 (BS 2000–2090). The current build emits React 18 deprecation and Node module-type warnings.
 
-| Guide | What it covers |
-| :--- | :--- |
-| [Project status](PROJECT-STATUS.md) | Current milestone, boundaries and documentation index |
-| [Dynamic academics and fees](docs/DYNAMIC-ACADEMICS-AND-FEES.md) | Detailed workflows, implementation history and verification |
-| [Architecture](ARCHITECTURE.md) | Current modules and proposed backend migration |
-| [Backend planning](docs/backend-planning/README.md) | Database, Nepal latency, weak networks, security and Docker decisions |
-| [ERP diagrams](docs/backend-planning/diagrams/README.md) | Conceptual people, roles and school-module relationships |
-| [Contributing](CONTRIBUTING.md) | Development rules and validation requirements |
-| [Deployment](DEPLOYMENT.md) | Publishing and frozen baseline preservation |
-| [Release notes](CHANGELOG.md) | Checkpoints and changes |
-| [Repair verification](audit/FIX-VERIFICATION.md) | Earlier audit repairs and their verification scope |
+Attachments use IndexedDB (`educore-files`), up to 10 MB per new attachment. Branding images are limited to 250 KB. The storage backup includes metadata, not attachment bytes. CSV exports are CSV; PDF actions use the browser's print/Save as PDF flow. Currency changes presentation only. Communication preferences and birthday drafts do not send messages. Fonts/icons may require internet.
 
-<a id="validation"></a>
-## 🛠️ Validation and release boundaries
+The original `v0.1.0-prototype` tag and `release/prototype-v0.1.0` branch remain at `d4cc547`. Current feature development does not rewrite that baseline. GitHub stores source, not browser records; a successful push does not confirm a live deployment. Historical audit/migration scripts must not be rerun as installation steps.
 
-```powershell
-npm.cmd run check     # Parse source and detect unresolved identifiers
-npm.cmd test          # Regression suite
-npm.cmd run build     # Production build
-npm.cmd run validate  # All three checks
-```
+---
 
-Latest application verification on **16 October 2026** passed **41 regression tests**, source checks and the production build. Targeted browser checks confirmed heading saves and individual class status persistence after reload. This documentation refresh does not claim a new application test run or complete browser coverage.
+## 🤝 Contributing
 
-The original `v0.1.0-prototype` tag and `release/prototype-v0.1.0` branch remain frozen at `d4cc547`. Current development is on `feature/dynamic-academics-and-fees`. Historical audit/migration scripts are not safe to rerun as a setup process.
+Contributions make the open-source community an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**!
 
-Next.js currently warns about React 18 deprecation; the verified build uses the pinned versions above. Direct Node test imports may emit a module-type warning.
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## 🗺️ Next phase
+---
 
-Backend planning proposes PostgreSQL, authenticated server-side permissions, school-scoped data, versioned financial records, managed attachments and recovery procedures. Offline synchronization, hosting-region measurements and production security verification remain future work. See the [staged roadmap](docs/backend-planning/06-implementation-roadmap.md).
+## 📜 License
 
-## 📄 License
+No project license file has been supplied. No MIT or other project licensing terms are asserted here. Dependency licenses are separate.
 
-No project license file has been supplied. This README does not assert MIT or other licensing terms for the project; dependency licenses are separate.
+---
+
+<div align="center">
+
+  **EduCore School Management System** • Built with ❤️ for Modern Education
+
+  [Back to Top ⬆️](#-educore---next-gen-enterprise-school-management-system)
+
+</div>
